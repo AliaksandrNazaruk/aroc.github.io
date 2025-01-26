@@ -6,6 +6,8 @@
 root/
 │
 ├── ../static/assets/images/
+├── ../static/css/
+├── ../static/fonts/
 │
 └── index.html
 ```
