@@ -1,0 +1,184 @@
+body {
+  margin: 0
+}
+
+div#_187_3270_Rich_Tooltip_green_unique_8879065428034f28878a1fbacdcc8f7f {
+  
+                position: absolute;
+                overflow: hidden;
+                background: rgba(243, 237, 247, 1);
+                border-radius: 12px;
+                filter: drop-shadow(
+                    0px 2px 6px 2px rgba(0, 0, 0, 0.15),
+                    0px 1px 2px 0px rgba(0, 0, 0, 0.3)
+                );
+                height: calc(136px - 0px - 0px);
+                width: calc(312px - 0px - 0px);
+                display: flex;
+                flex-direction: column;
+                justify-content: flex-start;
+                align-items: flex-start;
+                flex-wrap: nowrap;
+                gap: 8px;
+                padding: 0px 0px 8px 0px;
+            
+}
+
+div#I187_3270_54061_33873_Content_unique_4997cda9336646239c2c9846b082bce7 {
+  
+                    position: relative;
+                    height: 64px;
+                    width: 280px;
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: flex-start;
+                    align-items: flex-start;
+                    flex-wrap: nowrap;
+                    gap: 4px;
+                    padding: 12px 16px 4px 16px;
+                
+}
+
+span#Subhead_unique_e874e35389784115a60991b60f32832d {
+  
+                        color: #49454fff;
+                        font-family: Roboto;
+                        font-size: 14px;
+                        font-weight: 500;
+                        line-height: 20px;
+                        letter-spacing: 0.10000000149011612px;
+                        text-align: left;
+                        height: 20px;
+                        width: 280px;
+                        position: relative;
+                    
+}
+
+span#Supporting_text_unique_08f99f5f248642f69b6254831f1bcabd {
+  
+                        color: #49454fff;
+                        font-family: Roboto;
+                        font-size: 14px;
+                        font-weight: 400;
+                        line-height: 20px;
+                        letter-spacing: 0.25px;
+                        text-align: left;
+                        height: 40px;
+                        width: 280px;
+                        position: relative;
+                    
+}
+
+div#I187_3270_54061_33876_Actions_unique_41b5e75a4c8f4c51b9a72bcc53b05b71 {
+  
+                    position: relative;
+                    height: 40px;
+                    width: 296px;
+                    width: calc(100% - 8px - 8px);
+                    display: flex;
+                    flex-direction: row;
+                    justify-content: flex-start;
+                    align-items: center;
+                    flex-wrap: nowrap;
+                    gap: 8px;
+                    padding: 0px 8px 0px 8px;
+                
+}
+
+div#I187_3270_54061_33877_Primary_button_unique_d626f8c48c6745ec8b0aabe46b16b019 {
+  
+                        position: relative;
+                        overflow: hidden;
+                        border-radius: 100px;
+                        height: 40px;
+                        display: flex;
+                        flex-direction: column;
+                        justify-content: center;
+                        align-items: center;
+                        flex-wrap: nowrap;
+                        gap: 8px;
+                        cursor: pointer;
+                        cursor: pointer;
+                    
+}
+
+div#I187_3270_54061_33877_53923_27564_state-layer_unique_f13ff6e969664f2387217b99da1db40f {
+  
+                            position: relative;
+                            width: 48px;
+                            width: calc(100% - 12px - 12px);
+                            flex: 1;
+                            display: flex;
+                            flex-direction: row;
+                            justify-content: center;
+                            align-items: center;
+                            flex-wrap: nowrap;
+                            gap: 8px;
+                            padding: 10px 12px 10px 12px;
+                        
+}
+
+span#label-text_unique_ef84b0c20b584151b7c57f3e58d5f056 {
+  
+                                color: #65558fff;
+                                font-family: Roboto;
+                                font-size: 14px;
+                                font-weight: 500;
+                                line-height: 20px;
+                                letter-spacing: 0.10000000149011612px;
+                                text-align: center;
+                                height: 20px;
+                                width: 48px;
+                                position: relative;
+                            
+}
+
+div#I187_3270_54061_33878_Secondary_button_unique_e8840026bf21445dbbc6ae9debce0bf8 {
+  
+                        position: relative;
+                        overflow: hidden;
+                        border-radius: 100px;
+                        height: 40px;
+                        display: flex;
+                        flex-direction: column;
+                        justify-content: center;
+                        align-items: center;
+                        flex-wrap: nowrap;
+                        gap: 8px;
+                        cursor: pointer;
+                        cursor: pointer;
+                    
+}
+
+div#I187_3270_54061_33878_53923_27564_state-layer_unique_e16145c6032f4ee4982b3f3d12d152cd {
+  
+                            position: relative;
+                            width: 85px;
+                            width: calc(100% - 12px - 12px);
+                            flex: 1;
+                            display: flex;
+                            flex-direction: row;
+                            justify-content: center;
+                            align-items: center;
+                            flex-wrap: nowrap;
+                            gap: 8px;
+                            padding: 10px 12px 10px 12px;
+                        
+}
+
+span#label-text_unique_88f6f69c5b474219bd38ec3e3641633f {
+  
+                                color: #65558fff;
+                                font-family: Roboto;
+                                font-size: 14px;
+                                font-weight: 500;
+                                line-height: 20px;
+                                letter-spacing: 0.10000000149011612px;
+                                text-align: center;
+                                height: 20px;
+                                width: 85px;
+                                position: relative;
+                                cursor: pointer;
+                            
+}
+
