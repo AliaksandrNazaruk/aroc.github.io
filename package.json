@@ -9,6 +9,9 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "parcel": "^2.7.0"
+    "parcel": "^2.13.3"
+  },
+  "dependencies": {
+    "cheerio": "^1.0.0"
   }
 }

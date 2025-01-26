@@ -5,7 +5,7 @@
 ```md
 root/
 │
-├── assets/images/
+├── ../static/assets/images/
 │
 └── index.html
 ```
@@ -31,4 +31,4 @@ To view this project locally:
 
 ## Assets
 
-All project assets are stored in the `assets/` directory. Images are specifically located in `assets/images/`.
+All project assets are stored in the `assets/` directory. Images are specifically located in `../static/assets/images/`.
