@@ -9,6 +9,8 @@ div#_228_767_Rack-Attack_selection_unique_209174a18c6c405ca3a0f203c0c38f51 {
                 background: rgba(255, 255, 255, 1);
                 height: 100vh;
                 width: 100%;
+                overflow-y: scroll;
+
             
 }
 

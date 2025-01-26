@@ -9,6 +9,8 @@ div#_113_3160_New_AE_Hub_Data_unique_5d66788123354fe1883046ef9f69186e {
                 background: rgba(255, 255, 255, 1);
                 height: 100vh;
                 width: 100%;
+                overflow-y: scroll;
+
             
 }
 

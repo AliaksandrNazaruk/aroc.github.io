@@ -9,6 +9,8 @@ div#_113_293_New_Home_closed_unique_6410d7525a7f4e2fbcdab7e7c3c9f1a4 {
                 background: rgba(255, 255, 255, 1);
                 height: 100vh;
                 width: 100%;
+                overflow-y: scroll;
+
             
 }
 

@@ -9,6 +9,8 @@ div#_231_1003_Rack-Attack_selection_WAITING_unique_3ad4d4f704f64d37b3192f5cad0e5
                 background: rgba(255, 255, 255, 1);
                 height: 100vh;
                 width: 100%;
+                overflow-y: scroll;
+
             
 }
 

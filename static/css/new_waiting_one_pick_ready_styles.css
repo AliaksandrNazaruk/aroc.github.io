@@ -9,6 +9,8 @@ div#_210_1276_New_WAITING_one_Pick_Ready_unique_66966a4f98eb4224801d130534972e37
                 background: rgba(255, 255, 255, 1);
                 height: 100vh;
                 width: 100%;
+                overflow-y: scroll;
+
             
 }
 

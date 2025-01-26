@@ -8,7 +8,10 @@ div#_165_988_Login_page_unique_f1941a4e9f364b6184207b5750886701 {
                 overflow: hidden;
                 background: rgba(255, 255, 255, 1);
                 height: 100vh;
+
                 width: 100%;
+                overflow-y: scroll;
+
             
 }
 

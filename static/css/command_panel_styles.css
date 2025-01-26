@@ -9,6 +9,8 @@ div#_227_825_Command_Panel_unique_4cbeae3e67f942d998d6e23cec325f14 {
                 background: rgba(255, 255, 255, 1);
                 height: 100vh;
                 width: 100%;
+                overflow-y: scroll;
+
             
 }
 

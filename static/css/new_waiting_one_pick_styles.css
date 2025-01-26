@@ -9,6 +9,8 @@ div#_207_494_New_WAITING_one_Pick_unique_fcfd35d896aa47588e94cfb432af264c {
                 background: rgba(255, 255, 255, 1);
                 height: 100vh;
                 width: 100%;
+                overflow-y: scroll;
+
             
 }
 

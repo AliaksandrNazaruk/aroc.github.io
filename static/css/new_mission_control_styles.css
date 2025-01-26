@@ -9,6 +9,8 @@ div#_156_429_New_Mission_Control__unique_f738acb237044136ba7c23f54372a8d7 {
                 background: rgba(255, 255, 255, 1);
                 height: 100vh;
                 width: 100%;
+                overflow-y: scroll;
+
             
 }
 

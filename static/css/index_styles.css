@@ -17,6 +17,8 @@ div#_97_264_New_Home_open_unique_d9988239a4ea435ca5eaef6640d34211 {
                 background: rgba(255, 255, 255, 1);
                 height: 100vh;
                 width: 100%;
+                overflow-y: scroll;
+
             
 }
 

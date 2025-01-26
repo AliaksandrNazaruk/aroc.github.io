@@ -9,6 +9,8 @@ div#_232_1082_Rack-Attack_Cockpit_unique_437fa6af01b24e7dbeea364220327ca9 {
                 background: rgba(255, 255, 255, 1);
                 height: 100vh;
                 width: 100%;
+                overflow-y: scroll;
+
             
 }
 

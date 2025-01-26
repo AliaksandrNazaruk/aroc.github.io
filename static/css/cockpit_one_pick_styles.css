@@ -3,12 +3,14 @@ body {
 }
 
 div#_207_529_Cockpit_One_Pick_unique_94a73835d7de439da5404a4e2bec9cac {
-  
+                overflow-y: scroll;
                 position: absolute;
                 overflow: hidden;
                 background: rgba(255, 255, 255, 1);
                 height: 100vh;
                 width: 100%;
+                overflow-y: scroll;
+
             
 }
 
