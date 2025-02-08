@@ -1,103 +1,171 @@
+
 <!DOCTYPE html>
 <html lang="en">
- <head>
-  <meta charset="utf-8"/>
-  <meta content="width=device-width, initial-scale=1.0" name="viewport_unique_93356102a9b04f54b42c0457059a43f5"/>
-  <title>
-   Generated HTML
-  </title>
-  <link href="./static/css/command_panel_styles.css" rel="stylesheet"/>
- <link href="/static/css/fonts.css" rel="stylesheet" type="text/css" /></head>
- <body>
-  <div id="_227_825_Command_Panel_unique_4cbeae3e67f942d998d6e23cec325f14">
-   <div id="_227_827_main_frame_back_unique_b5206b17ece84093b9be607a6ab4aa10">
-   </div>
-   <div id="_227_828_header_closed_unique_048d3f388b73489a9773f5d8d571541c">
-    <div id="I227_828_113_462_003-AROC-Verlauf-V00_small_1_unique_e04e020d948b49ac911c2d3b3058172c">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AE Hub</title>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            fetch("sidebar.html")
+                .then(response => response.text())
+                .then(data => {
+                    document.getElementById("sidebar-container").innerHTML = data;
+                })
+                .then(() => {
+                    document.querySelector(".menu-toggle").addEventListener("click", function() {
+                        document.querySelector(".sidebar").classList.toggle("collapsed");
+                        updateFixedTextPosition();
+                    });
+                });
+
+            fetch("topbar.html")
+                .then(response => response.text())
+                .then(data => {
+                    document.getElementById("topbar-container").innerHTML = data;
+                });
+
+            function updateFixedTextPosition() {
+                const fixedText = document.querySelector(".fixed-text");
+                const sidebar = document.querySelector(".sidebar");
+                if (sidebar.classList.contains("collapsed")) {
+                    fixedText.style.left = "80px"; // Новая позиция при свёрнутой панели
+                } else {
+                    fixedText.style.left = "280px"; // Оригинальная позиция
+                }
+            }
+        });
+
+    </script>
+    <style>
+    .fixed-text {
+        position: absolute;
+        top: 10px;
+        left: 280px; /* Начальное положение */
+        white-space: nowrap;
+        font-size: 20px;
+        font-weight: bold;
+        padding: 5px 10px;
+        background: linear-gradient(to right, #3498db, #9b59b6);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        transition: left 0.3s ease-in-out; /* Плавное изменение позиции */
+    }
+
+
+
+    @font-face {
+        font-family: 'Sen';
+        src: url('/fonts/Sen-Regular.ttf') format('truetype');
+        font-weight: normal;
+        font-style: normal;
+    }
+
+    @font-face {
+        font-family: 'Sen';
+        src: url('/fonts/Sen-Bold.ttf') format('truetype');
+        font-weight: bold;
+        font-style: normal;
+    }
+      
+    /* Контент */
+    .content {
+        flex: 1;
+        padding: 20px;
+    }
+
+    .header {
+        text-align: center;
+        font-size: 24px;
+        font-weight: bold;
+        color: #333;
+        margin-bottom: 20px;
+    }
+
+    .dashboard {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+        gap: 20px;
+        padding: 20px;
+        max-width: 1000px;
+        margin: 0 auto;
+    }
+
+    .card {
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        /* text-align: center; */
+    }
+
+    .card h2 {
+        color: #9b59b6;
+        font-size: 20px;
+        margin-bottom: 10px;
+    }
+
+    .card p {
+        color: #666;
+        font-size: 14px;
+    }
+
+    button {
+        background: #a12d9b;
+        color: white;
+        border: none;
+        padding: 10px 15px;
+        font-size: 16px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: background 0.3s;
+    }
+    button:hover {
+        background: #666;
+    }
+
+    .highlight {
+      color: #9b59b6;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+    <div class="container">
+      <div id="sidebar-container"></div>
+      <div style="width: 100%;">
+        <div id="topbar-container"></div> <div class="fixed-text">Command Panel</div>
+          <main class="content">
+              <section class="dashboard">
+
+                    <div class="card">
+                        <h2>Service Mode</h2>
+                        <p>In Service Mode you can operate the AE.01 directly.</p>
+                        <p style="color: black;">Start the service mode.</p>
+                        <button onclick="location.href='rackattack_selection_waiting.html'">Start AE Service Mode
+                            <img src="./static/assets/images/286794566.svg" alt="AE Hub Data" width="50" onclick="window.location.href='rackattack_selection_waiting.html'" style="
+                                    width: 20px;
+                                    margin-right: -15px;
+                                    margin-bottom: -13px;">
+                        </button>
+                    </div>
+
+                    <div class="card">
+                        <h2>...</h2>
+                        <p>...</p>
+                        <p style="color: black;">...</p>
+                        <button onclick="location.href='rackattack_selection.html'">...
+                        <img src="./static/assets/images/286794566.svg" alt="AE Hub Data" width="50" onclick="window.location.href='rackattack_selection.html'" style="
+                                    width: 20px;
+                                    margin-right: -15px;
+                                    margin-bottom: -13px;">
+                        </button>
+                    </div>
+
+              </section>
+          </main>
+      </div>
     </div>
-    <div id="I227_828_113_463_Rectangle_2_unique_1a99b32e9ce14eea912d2f84abf7e388">
-    </div>
-    <img alt="Bell" id="I227_unique_cfa9320542d44bf89b35a5041db49c5b" src="./static/assets/images/14918605264.svg"/>
-    <div id="I227_828_113_3082_Ellipse_1_unique_cae22863a1b9485b88989b86b6094f26">
-    </div>
-    <span id="_1_unique_f2049188429e41969aaf5397a9c4811c">
-     1
-    </span>
-    <img alt="question" id="I227_828_unique_bac44b53da4545eb8b455bf55f34e901" src="./static/assets/images/11523839622.svg"/>
-    <img alt="Online_Status" id="I227_828_113__unique_057cce94c3a748319a10ae2dbc58aa48" onclick="window.location.href='rich_tooltip_green.html'" src="./static/assets/images/14246722532.svg"/>
-    <div id="I227_828_113_3086_Avatar_unique_8727fa141f374981a2a5b64d66cc25f4">
-     <div id="I227_828_113_3086_9762_1114_Shape_unique_2f3cfcc3602b4988b5dcbe4c0cb4cdfc">
-     </div>
-    </div>
-   </div>
-   <div id="_227_830_003-AROC-Verlauf-V00_small_1_unique_606cff7ec37443e79dfad1ca71488af2">
-   </div>
-   <div id="_227_831_navigation_closed_unique_b2757ce018d5428d806304fc41ab5130">
-    <div id="I227_831_113_358_nav_back_left_unique_63dd83b8a65b4f038889e6fd1b741603">
-    </div>
-    <img alt="Logout" id="I227_8_unique_788bb89126784bb0bc2cd740515ca115" onclick="window.location.href='login_page.html'" src="./static/assets/images/7351970924.svg"/>
-    <img alt="Setup" id="I227__unique_38e78f1f9a3a4962ab2f1ac05b6f1848" onclick="window.location.href='command_panel.html'" src="./static/assets/images/15625016902.svg"/>
-    <img alt="Info" id="I227_unique_0fe8a8dc21314b19bb5620f5c7a1e1ff" src="./static/assets/images/14336825259.svg"/>
-    <img alt="Chart_Pie" id="I227_831__unique_a06d9e5393164fe59d961c6af530419c" onclick="window.location.href='new_aehub_data.html'" src="./static/assets/images/27403011989.svg"/>
-    <img alt="Award" id="I227__unique_9094e09279fb4477ba83e5e97d2e9522" src="./static/assets/images/76620908945.svg"/>
-    <img alt="Rocket" id="I227_8_unique_7ed7dd43edb6485ab7fe91ad767a505c" onclick="window.location.href='new_mission_control.html'" src="./static/assets/images/11446502311.svg"/>
-    <img alt="Home" id="I227_unique_995f71f2be7a4a11b8c93ff04dca114f" onclick="window.location.href=''" src="./static/assets/images/25028193259.svg"/>
-    <div id="I227_831_113_298_bars_unique_a0a6bbbf1f4c47cd980f551086af2888" onclick="window.location.href=''">
-     <img alt="Vector" id="I227_8_unique_ab97247f3f684c03b02e13aa5c014c96" src="./static/assets/images/23711331820.svg"/>
-    </div>
-   </div>
-   <span id="Command_Panel_unique_e3f830fd379747889244590615eb1c6b">
-    Command Panel
-   </span>
-   <div id="_227_846_Form_Shipping_unique_63a72065ad1643f9be6d45c0e2cbb4e3">
-    <div id="I227_846_197_23151_Legend_unique_cc0577775faa42358528f6ed3ddf7c36">
-     <span id="Shipping_information_unique_f40ba58fc6a34256a7cf72acfb1ef268">
-      ...
-     </span>
-     <div id="I227_846_197_23149_Text_unique_89932dc3aa094257879e96a67b6501da">
-      <span id="Text_unique_df787da21a0a4e48bc4c0b5d64158350">
-       ...
-      </span>
-     </div>
-    </div>
-    <div id="I227_846_197_23060_Select_Field_unique_a0c1242c1959415e8d896a99b83dd748">
-     <span id="Label_unique_aca0e8a61eb1433b99297a0d0d3e6bae">
-      ...
-     </span>
-    </div>
-   </div>
-   <div id="_227_849_Rectangle_3_unique_c4c5b3c0e6d94fc39a1c8617c7ebd85c">
-   </div>
-   <img alt="Vector_1" id="_227_850_unique_18df5f87937f436bb80b0a6201d57d17" src="./static/assets/images/286794566.svg"/>
-   <span id="____unique_e8dcde2bd20c46f6b5d2f6fbc931248a">
-    ...
-   </span>
-   <div id="_227_934_Form_Shipping_unique_729f13c830754ffc98f683ad358df693">
-    <div id="I227_934_197_23151_Legend_unique_76428ffc09104a0b93e7371b205c72fb">
-     <span id="Shipping_information_unique_fc4b42ee6af54cbab443cff56140a6ed">
-      Service Mode
-     </span>
-     <div id="I227_934_197_23149_Text_unique_d3c49c533e664ff78112ad53ed70fd35">
-      <span id="Text_unique_ce53847f9b52421e8a041693602d7e54">
-       In Service Mode you can operate
-       <br/>
-       the AE.01
-                            directly.
-      </span>
-     </div>
-    </div>
-    <div id="I227_934_197_23060_Select_Field_unique_32818cbce76e4c749eb33977fa2afc4c">
-     <span id="Label_unique_e6a59f92d5b74d7290253b16e41342ca">
-      Start the service mode.
-     </span>
-    </div>
-   </div>
-   <div id="_227_937_Rectangle_3_unique_13401a87f3884c58a50de0a3a78ee747">
-   </div>
-   <img alt="Vector_1" id="_227_938_unique_7e3628a2521c415794ba0dc2ff3fff10" src="./static/assets/images/286794566.svg"/>
-   <span id="Start_AE_Service_Mode_unique_5e88d0ccf73042179e0a71b5c4727870">
-    Start AE Service Mode
-   </span>
-  </div>
- </body>
+
+</body>
 </html>
