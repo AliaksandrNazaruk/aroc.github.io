@@ -9,6 +9,8 @@ div#_232_1229_Rack-Attack_Cockpit_WAITING_unique_87b6857ba70248c8a191bf983c82fac
                 background: rgba(255, 255, 255, 1);
                 height: 100vh;
                 width: 100%;
+                overflow-y: scroll;
+
             
 }
 

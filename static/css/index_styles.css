@@ -10,6 +10,60 @@ body {
   margin: 0
 }
 
+
+/* Общий контейнер для всех панелей */
+.dashboard {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  padding: 20px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+/* Стиль панели */
+.panel {
+  background: #ffffff;
+  border: 1px solid #d9d9d9;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Заголовки */
+.panel h2 {
+  font-size: 18px;
+  color: #333333;
+  margin-bottom: 8px;
+}
+
+/* Текст */
+.panel p {
+  font-size: 16px;
+  color: #666666;
+}
+
+/* Кнопка */
+.panel button {
+  background: #a12d9b;
+  color: white;
+  border: none;
+  padding: 10px;
+  font-size: 16px;
+  font-weight: bold;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.panel button:hover {
+  background: #802d7b;
+}
+
 div#_97_264_New_Home_open_unique_d9988239a4ea435ca5eaef6640d34211 {
   
                 position: absolute;
