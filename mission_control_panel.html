@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AE Unit Selection</title>
+
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; background: #f9f9f9; }
+        .container { display: flex; }
+        .content { flex: 1; padding: 20px; }
+        .header { font-size: 24px; font-weight: bold; color: #6a1b9a; margin-bottom: 10px; }
+        .sub-header { color: #666; margin-bottom: 20px; }
+        .search-bar { display: flex; justify-content: flex-end; margin-bottom: 20px; }
+        .search-bar input { padding: 8px; width: 300px; border: 1px solid #ccc; border-radius: 4px; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 10px; text-align: center; }
+        th { background: #f0f0f0; }
+        button {
+        background: #a12d9b;
+        color: white;
+        border: none;
+        padding: 10px 15px;
+        font-size: 16px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: background 0.3s;
+        }
+        button:hover {
+            background: #666;
+        }
+        button:disabled {
+        background: #9d9d9d;
+        color: white;
+        border: none;
+        padding: 10px 15px;
+        font-size: 16px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: background 0.3s;
+        }
+        .highlight {
+        color: #9b59b6;
+        font-weight: bold;
+        }
+        h2 {
+        color: #9b59b6;
+        font-size: 20px;
+        margin-bottom: 10px;
+        }
+        p {
+            color: #666;
+            font-size: 14px;
+            width: 310px;
+        }
+        .timer-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+        .timer {
+            padding: 10px 20px;
+            background: #333;
+            color: #fff;
+            border-radius: 10px;
+            font-size: 1.5em;
+            width: 250px;
+        }
+    </style>
+    
+</head>
+<body>
+        <div style="width: 100%;">
+            <main class="content">
+                <h2>AE Unit Selection</h2>
+                <p>There are currently more than 50 robots in operation and 15 open orders in the queue.</p>
+                <div class="search-bar" style="margin-top: -55px;">
+                    <input type="text" placeholder="Search your AE Unit">
+                </div>
+                <div class="table-container" style="display: unset;">
+                    <table>
+                        <tr>
+                            <th>Mission</th>
+                            <th>Waiting time</th>
+                            <th>Level</th>
+                            <th>Action</th>
+                        </tr>
+                        <tr>
+                            <td>AE81215668155</td>
+                            <td> 
+                                <div class="timer-container">
+                                    <div class="timer-container" id="timer1"><span class="time"></span></div>
+                                </div></td>
+                            </td>
+                            <td>AE.Pilot A 
+                                <img src="./static/assets/images/15502889440.svg" width="2">
+                                <img src="./static/assets/images/18225881951.svg" width="20">
+                                <img src="./static/assets/images/15502889440.svg" width="2">
+                                <img src="./static/assets/images/21655541316.svg" width="25">
+                                <img src="./static/assets/images/15502889440.svg" width="2">
+                                <img src="./static/assets/images/14918605264.svg" width="15"></td>
+                            <td>
+                                <button onclick="location.href='mission_control_waiting.html'">Start Mission<img src="./static/assets/images/286794566.svg" alt="AE Hub Data" width="50" onclick="window.location.href='mission_control_waiting.html'" style="width: 20px;margin-right: -15px;margin-bottom: -13px;"></button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>AE81215658466</td>
+                            <td> <div class="timer-container">
+                                <div class="timer-container" id="timer2"><span class="time"></span></div>
+                            </div></td>
+                            <td>AE.Pilot A 
+                                <img src="./static/assets/images/15502889440.svg" width="2">
+                                <img src="./static/assets/images/18225881951.svg" width="20">
+                                <img src="./static/assets/images/15502889440.svg" width="2">
+                                <img src="./static/assets/images/21655541316.svg" width="25">
+                                <img src="./static/assets/images/15502889440.svg" width="2">
+                                <img src="./static/assets/images/14918605264.svg" width="15"></td>
+                            <td>
+                                <button onclick="location.href='mission_control_waiting.html'">Start Mission<img src="./static/assets/images/286794566.svg" alt="AE Hub Data" width="50" onclick="window.location.href='mission_control_waiting.html'" style="width: 20px;margin-right: -15px;margin-bottom: -13px;"></button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>AE81215656587</td>
+                            <td> <div class="timer-container">
+                                <div class="timer-container" id="timer3"><span class="time"></span></div>
+                            </div></td>
+                            <td>AE.Pilot A 
+                                <img src="./static/assets/images/15502889440.svg" width="2">
+                                <img src="./static/assets/images/18225881951.svg" width="20">
+                                <img src="./static/assets/images/15502889440.svg" width="2">
+                                <img src="./static/assets/images/21655541316.svg" width="25">
+                                <img src="./static/assets/images/15502889440.svg" width="2">
+                                <img src="./static/assets/images/14918605264.svg" width="15"></td>
+                            <td>
+                                <button onclick="location.href='mission_control_waiting.html'">Start Mission<img src="./static/assets/images/286794566.svg" alt="AE Hub Data" width="50" onclick="window.location.href='mission_control_waiting.html'" style="width: 20px;margin-right: -15px;margin-bottom: -13px;"></button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>AE81215635421</td>
+                            <td> <div class="timer-container">
+                                <div class="timer-container" id="timer4"><span class="time"></span></div>
+                            </div></td>
+                            <td>AE.Pilot C
+                                <img src="./static/assets/images/15502889440.svg" width="2">
+                                <img src="./static/assets/images/18225881951.svg" width="20">
+                                <img src="./static/assets/images/15502889440.svg" width="2">
+                                <img src="./static/assets/images/8634184976.svg" width="25">
+                                <img src="./static/assets/images/15502889440.svg" width="2">
+                                <img src="./static/assets/images/6006973842.svg" width="15"></td>
+                            <td>
+                                <button onclick="location.href='mission_control_waiting.html'">Start Mission<img src="./static/assets/images/286794566.svg" alt="AE Hub Data" width="50" onclick="window.location.href='mission_control_waiting.html'" style="width: 20px;margin-right: -15px;margin-bottom: -13px;"></button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>AE81235784531</td>
+                            <td> <div class="timer-container">
+                                <div class="timer-container" id="timer5"><span class="time"></span></div>
+                            </div></td>
+                            <td>AE.Pilot A 
+                                <img src="./static/assets/images/15502889440.svg" width="2">
+                                <img src="./static/assets/images/18225881951.svg" width="20">
+                                <img src="./static/assets/images/15502889440.svg" width="2">
+                                <img src="./static/assets/images/21655541316.svg" width="25">
+                                <img src="./static/assets/images/15502889440.svg" width="2">
+                                <img src="./static/assets/images/14918605264.svg" width="15"></td>
+                            <td>
+                                <button onclick="location.href='mission_control_waiting.html'">Start Mission<img src="./static/assets/images/286794566.svg" alt="AE Hub Data" width="50" onclick="window.location.href='mission_control_waiting.html'" style="width: 20px;margin-right: -15px;margin-bottom: -13px;"></button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>AE81235784531</td>
+                            <td> <div class="timer-container">
+                                <div class="timer-container" id="timer6"><span class="time"></span></div>
+                            </div></td>
+                            <td>AE.Pilot A 
+                                <img src="./static/assets/images/15502889440.svg" width="2">
+                                <img src="./static/assets/images/18225881951.svg" width="20">
+                                <img src="./static/assets/images/15502889440.svg" width="2">
+                                <img src="./static/assets/images/21655541316.svg" width="25">
+                                <img src="./static/assets/images/15502889440.svg" width="2">
+                                <img src="./static/assets/images/14918605264.svg" width="15"></td>
+                            <td>
+                                <button onclick="location.href='mission_control_waiting.html'">Start Mission<img src="./static/assets/images/286794566.svg" alt="AE Hub Data" width="50" onclick="window.location.href='mission_control_waiting.html'" style="width: 20px;margin-right: -15px;margin-bottom: -13px;"></button>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </main>
+        </div>
+
+    <script>
+        function startCountdown(timerId, durationInSeconds) {
+            let timerElement = document.querySelector(`#${timerId} .time`);
+            let remainingTime = durationInSeconds;
+
+            function updateTimerDisplay() {
+                let hours = Math.floor(remainingTime / 3600);
+                let minutes = Math.floor((remainingTime % 3600) / 60);
+                let seconds = remainingTime % 60;
+                
+                let formattedTime = 
+                    String(hours).padStart(2, '0') + 'h:' + 
+                    String(minutes).padStart(2, '0') + 'm:' + 
+                    String(seconds).padStart(2, '0') + 's';
+                
+                timerElement.textContent = formattedTime;
+            }
+
+            function countdown() {
+                if (remainingTime > 0) {
+                    remainingTime--;
+                    updateTimerDisplay();
+                } else {
+                    clearInterval(interval);
+                    timerElement.textContent = "Время истекло!";
+                }
+            }
+
+            updateTimerDisplay();
+            let interval = setInterval(countdown, 1000);
+        }
+
+        // Запускаем таймеры с разным временем
+        startCountdown("timer1", 8 * 60 + 35); // 5 минут
+        startCountdown("timer2", 7 * 60 + 15); // 3 минуты 30 секунд
+        startCountdown("timer3", 7 * 60 + 5); // 10 минут 15 секунд
+        // Запускаем таймеры с разным временем
+        startCountdown("timer4", 6 * 60 + 55); // 5 минут
+        startCountdown("timer5", 13 * 60 + 12); // 3 минуты 30 секунд
+        startCountdown("timer6", 10 * 60 + 22); // 10 минут 15 секунд
+    </script>
+</body>
+</html>

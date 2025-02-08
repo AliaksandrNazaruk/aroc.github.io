@@ -1,0 +1,98 @@
+
+    <link rel="stylesheet" href="chart.min.css">
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #f9f9f9; }
+        .header { display: flex; justify-content: space-between; align-items: center; }
+        .container {min-height: 30vh; flex-wrap: wrap; gap: 20px; margin-top: 20px; }
+        .card { padding: 20px; border-radius: 8px; background: white; width: 220px; text-align: center; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); }
+        .chart-container { width: 100%; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; background: white; border-radius: 8px; overflow: hidden; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+        th { background: #f0f0f0; }
+        .tabs { display: flex; gap: 20px; margin: 20px 0; }
+        .tab { padding: 10px; cursor: pointer; font-weight: bold; }
+        .tab.active { border-bottom: 2px solid blue; }
+    </style>
+
+
+    <div class="header">
+        <input type="text" placeholder="Search for issues" style="padding: 8px; width: 200px;">
+        <button style="padding: 8px;">Configure notifications</button>
+    </div>
+    
+    <div class="container">
+        <div class="card"><h3>Crash Free Sessions</h3><p>93.8%</p></div>
+        <div class="card"><h3>Crashes</h3><p>953 <span style="color: red;">▲ +0.95%</span></p></div>
+        <div class="card"><h3>Total Sessions</h3><p>15.4K <span style="color: blue;">▼ -8%</span></p></div>
+        <div class="card"><h3>Affected Users</h3><p>950 <span style="color: red;">▲ +30.14%</span></p></div>
+    </div>
+    
+    <div class="tabs">
+        <div class="tab active">Trends</div>
+        <div class="tab">App versions</div>
+        <div class="tab">OS versions</div>
+        <div class="tab">Devices</div>
+        <div class="tab">Platform</div>
+    </div>
+    
+    <div class="chart-container">
+        <canvas id="crashChart"></canvas>
+    </div>
+    
+    <table>
+        <tr>
+            <th>Reason</th>
+            <th>Top of Stack</th>
+            <th>Occurrences</th>
+            <th>Affected Users</th>
+            <th>Platform</th>
+            <th>First Occurrence</th>
+            <th>Last Occurrence</th>
+        </tr>
+        <tr>
+            <td>java.lang.RuntimeException</td>
+            <td>android.app.ActivityThread.performLaunch</td>
+            <td>274</td>
+            <td>274</td>
+            <td>Android</td>
+            <td>28 days ago</td>
+            <td>4 days ago</td>
+        </tr>
+        <tr>
+            <td>java.lang.NumberFormatException</td>
+            <td>sun.misc.FloatingDecimal.readJavaForm</td>
+            <td>198</td>
+            <td>198</td>
+            <td>Android</td>
+            <td>28 days ago</td>
+            <td>1 day ago</td>
+        </tr>
+        <tr>
+            <td>java.lang.NumberFormatException</td>
+            <td>sun.misc.FloatingDecimal.readJavaForm</td>
+            <td>177</td>
+            <td>177</td>
+            <td>Android</td>
+            <td>28 days ago</td>
+            <td>1 day ago</td>
+        </tr>
+    </table>
+    
+    <script src="chart.min.js"></script>
+    <script>
+        const ctx = document.getElementById('crashChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ['16 Feb', '18 Feb', '20 Feb', '22 Feb', '24 Feb', '26 Feb', '28 Feb', '2 Mar', '4 Mar', '6 Mar', '8 Mar', '10 Mar', '12 Mar', '14 Mar', '16 Mar'],
+                datasets: [{
+                    label: 'Crash Count',
+                    data: [20, 30, 40, 50, 75, 90, 80, 60, 50, 70, 40, 30, 20, 10, 5],
+                    borderColor: 'blue',
+                    borderWidth: 2,
+                    fill: false
+                }]
+            },
+            options: { responsive: true }
+        });
+    </script>

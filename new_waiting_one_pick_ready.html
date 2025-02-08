@@ -1,59 +1,178 @@
+
 <!DOCTYPE html>
 <html lang="en">
- <head>
-  <meta charset="utf-8"/>
-  <meta content="width=device-width, initial-scale=1.0" name="viewport_unique_33b49e455d1d4a7997a1f4c8c2c5c565"/>
-  <title>
-   Generated HTML
-  </title>
-  <link href="./static/css/new_waiting_one_pick_ready_styles.css" rel="stylesheet"/>
- <link href="/static/css/fonts.css" rel="stylesheet" type="text/css" /></head>
- <body>
-  <div id="_210_1276_New_WAITING_one_Pick_Ready_unique_66966a4f98eb4224801d130534972e37" onclick="window.location.href='cockpit_one_pick_2.html'">
-   <div id="_210_1278_header_closed_unique_6ac759c872d24065a733b59c3cc7f097">
-    <div id="I210_1278_113_462_003-AROC-Verlauf-V00_small_1_unique_b64fadd26f2c49a59ec52487dd123d7c">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AE Hub</title>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+          fetch("sidebar.html")
+          .then(response => response.text())
+          .then(data => {document.getElementById("sidebar-container").innerHTML = data;})
+          .then(() => {document.querySelector(".menu-toggle").addEventListener("click", function() {
+                       document.querySelector(".sidebar").classList.toggle("collapsed");});});});
+          
+          document.addEventListener("DOMContentLoaded", function() {
+          fetch("topbar.html")
+          .then(response => response.text())
+          .then(data => {document.getElementById("topbar-container").innerHTML = data;})
+          });
+          function updateFixedTextPosition() {
+                const fixedText = document.querySelector(".fixed-text");
+                const sidebar = document.querySelector(".sidebar");
+                if (sidebar.classList.contains("collapsed")) {
+                    fixedText.style.left = "80px"; // Новая позиция при свёрнутой панели
+                } else {
+                    fixedText.style.left = "280px"; // Оригинальная позиция
+                }
+            }
+        function checkJobStatus() {
+            window.location.href = "cockpit_one_pick.html"; // Перенаправление
+        }
+        setTimeout(checkJobStatus, 5000); // Запускаем проверку
+
+        // function checkJobStatus() {
+        //     fetch('/job_status')
+        //         .then(response => response.json())
+        //         .then(data => {
+        //             if (data.done) {
+        //                 window.location.href = "http://192.168.1.10:8000/"; // Перенаправление
+        //             } else {
+        //                 setTimeout(checkJobStatus, 2000); // Проверяем снова через 2 секунды
+        //             }
+        //         })
+        //         .catch(error => console.error('Ошибка:', error));
+        // }
+        // setTimeout(checkJobStatus, 2000); // Запускаем проверку
+
+      </script>
+    <style>
+    .fixed-text {
+        position: absolute;
+        top: 10px;
+        left: 280px; /* Начальное положение */
+        white-space: nowrap;
+        font-size: 20px;
+        font-weight: bold;
+        padding: 5px 10px;
+        background: linear-gradient(to right, #3498db, #9b59b6);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        transition: left 0.3s ease-in-out; /* Плавное изменение позиции */
+    }
+
+    .fixed-text_new {
+        position: absolute;
+        top: 20%; /* Регулируйте по необходимости */
+        left: 30%; /* Регулируйте по необходимости */
+        
+        font-size: 20px;
+        font-weight: bold;
+        padding: 5px 10px;
+        background: linear-gradient(to right, #3498db, #9b59b6);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .fixed-img {
+        position: absolute;
+        top: 15%; /* Регулируйте по необходимости */
+        left: 60%; /* Регулируйте по необходимости */
+    }
+    @font-face {
+        font-family: 'Sen';
+        src: url('/fonts/Sen-Regular.ttf') format('truetype');
+        font-weight: normal;
+        font-style: normal;
+    }
+
+    @font-face {
+        font-family: 'Sen';
+        src: url('/fonts/Sen-Bold.ttf') format('truetype');
+        font-weight: bold;
+        font-style: normal;
+    }
+      
+    /* Контент */
+    .content {
+        flex: 1;
+        padding: 20px;
+    }
+
+    .header {
+        text-align: center;
+        font-size: 24px;
+        font-weight: bold;
+        color: #333;
+        margin-bottom: 20px;
+    }
+
+    .dashboard {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+        gap: 20px;
+        padding: 20px;
+        max-width: 1000px;
+        margin: 0 auto;
+    }
+
+    .card {
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        /* text-align: center; */
+    }
+
+    .card h2 {
+        color: #9b59b6;
+        font-size: 20px;
+        margin-bottom: 10px;
+    }
+
+    .card p {
+        color: #666;
+        font-size: 14px;
+    }
+
+    button {
+        background: #a12d9b;
+        color: white;
+        border: none;
+        padding: 10px 15px;
+        font-size: 16px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: background 0.3s;
+    }
+    button:hover {
+        background: #666;
+    }
+
+    .highlight {
+      color: #9b59b6;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+    <div class="container">
+      <div id="sidebar-container"></div>
+      <div style="width: 100%;">
+        <div id="topbar-container"></div> <div class="fixed-text">Mission Control</div>
+          <main class="content">
+            <span class="fixed-text_new" id="We_are_waiting_for_the_connection__to_your_robots__buckle_up__adjust_your__seating_position_and_be_ready__unique_a7124a99ddaf4eb3bdb6d2e02cbf4347">
+                Your articles will be processed
+               </span>
+               <img  class="fixed-img" src="./static/assets/images/2053e12b9c1ae3a081ba092cab8cebf11585ecce.gif" alt="AE Hub Data" width="50" onclick="window.location.href='rackattack_cockpit.html'" style="
+               width: 200px;">
+               
+          </main>
+      </div>
     </div>
-    <div id="I210_1278_113_463_Rectangle_2_unique_28da36da1f8b443fb13d5a8a74ef9686">
-    </div>
-    <img alt="Bell" id="I210_unique_4eae43caa4344c41ba169c9cbf67d240" src="./static/assets/images/14918605264.svg"/>
-    <div id="I210_1278_113_3082_Ellipse_1_unique_314f6c8ffe3046859e2672afb057425d">
-    </div>
-    <span id="_1_unique_8898dc630d194f67b3100a039b016a7c">
-     1
-    </span>
-    <img alt="question" id="I210_127_unique_69e9e9411aeb4eb4b0fe79b86094dd33" src="./static/assets/images/11523839622.svg"/>
-    <img alt="Online_Status" id="I210_1278_113_unique_c21ecfb721a743d5bcc069cdeec9e082" onclick="window.location.href='rich_tooltip_green.html'" src="./static/assets/images/14246722532.svg"/>
-    <div id="I210_1278_113_3086_Avatar_unique_d6f43a2bcf2f4be1991aa474e17a6afe">
-     <div id="I210_1278_113_3086_9762_1114_Shape_unique_fb2419e6604843b0be324624c740954f">
-     </div>
-    </div>
-   </div>
-   <div id="_210_1280_003-AROC-Verlauf-V00_small_1_unique_e60c53ed600146548cedcc4aef61e668">
-   </div>
-   <div id="_210_1281_navigation_closed_unique_16c64378b1b64500bacf669272334068">
-    <div id="I210_1281_113_358_nav_back_left_unique_940982da260042978c3bb51f9d268dcb">
-    </div>
-    <img alt="Logout" id="I210_1_unique_c8b6fb3771794b269fde02c49c3d3555" onclick="window.location.href='login_page.html'" src="./static/assets/images/7351970924.svg"/>
-    <img alt="Setup" id="I210__unique_13906d03e4c649c5af5d720a3420aa7c" onclick="window.location.href='command_panel.html'" src="./static/assets/images/15625016902.svg"/>
-    <img alt="Info" id="I210_unique_19716ca53934458e8b70580a1356ca89" src="./static/assets/images/14336825259.svg"/>
-    <img alt="Chart_Pie" id="I210_1281_unique_dfc0153375ca46168a257b5c7786643c" onclick="window.location.href='new_aehub_data.html'" src="./static/assets/images/27403011989.svg"/>
-    <img alt="Award" id="I210__unique_a7e1001a89f345f681bd3084ecafc1dc" src="./static/assets/images/76620908945.svg"/>
-    <img alt="Rocket" id="I210_1_unique_6e83685429a041fc8092733d30cd1b2b" onclick="window.location.href='new_mission_control.html'" src="./static/assets/images/11446502311.svg"/>
-    <img alt="Home" id="I210_unique_98de567681a34e2c9554904961571ce3" onclick="window.location.href='new_home_closed.html'" src="./static/assets/images/25028193259.svg"/>
-    <div id="I210_1281_113_298_bars_unique_c9d35f1fbe124390973224bf56597bec" onclick="window.location.href=''">
-     <img alt="Vector" id="I210_1_unique_4bdc39381ad54ae0bc92ea1d6cabde57" src="./static/assets/images/23711331820.svg"/>
-    </div>
-   </div>
-   <span id="Mission_Control_unique_2ad8f69542c842d6ae1dc12a8c287c68">
-    Mission Control
-   </span>
-   <div id="_210_1283_image_2_unique_6ce0d2f07196404384fce1c75a99b720">
-   </div>
-   <div id="_210_1284_load-1110_256_1_unique_bc6a2d980e654ea7b8ebe27dd9d46d77">
-   </div>
-   <span id="Your_articles_will_be_processed__unique_b287d7a99363478784053957a67b300f">
-    Your articles will be processed.
-   </span>
-  </div>
- </body>
+
+</body>
 </html>
+
+    

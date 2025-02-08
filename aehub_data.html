@@ -35,53 +35,10 @@
                 }
             }
         });
-        
 
-        function initTimers() {
-            function startCountdown(elementId, durationInSeconds) {
-                let timerElement = document.getElementById(elementId);
-                if (!timerElement) return;
-
-                let remainingTime = durationInSeconds;
-
-                function updateTimerDisplay() {
-                    let hours = Math.floor(remainingTime / 3600);
-                    let minutes = Math.floor((remainingTime % 3600) / 60);
-                    let seconds = remainingTime % 60;
-
-                    let formattedTime =
-                        String(hours).padStart(2, '0') + 'h:' +
-                        String(minutes).padStart(2, '0') + 'm:' +
-                        String(seconds).padStart(2, '0') + 's';
-
-                    timerElement.textContent = formattedTime;
-                }
-
-                function countdown() {
-                    if (remainingTime > 0) {
-                        remainingTime--;
-                        updateTimerDisplay();
-                    } else {
-                        clearInterval(interval);
-                        timerElement.textContent = "Время истекло!";
-                    }
-                }
-
-                updateTimerDisplay();
-                let interval = setInterval(countdown, 1000);
-            }
-                // Запускаем таймеры с разным временем
-            startCountdown("timer1", 8 * 60 + 35); // 5 минут
-            startCountdown("timer2", 7 * 60 + 15); // 3 минуты 30 секунд
-            startCountdown("timer3", 7 * 60 + 5); // 10 минут 15 секунд
-            // Запускаем таймеры с разным временем
-            startCountdown("timer4", 6 * 60 + 55); // 5 минут
-            startCountdown("timer5", 13 * 60 + 12); // 3 минуты 30 секунд
-            startCountdown("timer6", 10 * 60 + 22); // 10 минут 15 секунд
-    }
-    </script>
+      </script>
     <style>
-    .fixed-text {
+   .fixed-text {
         position: absolute;
         top: 10px;
         left: 280px; /* Начальное положение */
@@ -110,7 +67,12 @@
         font-weight: bold;
         font-style: normal;
     }
-    
+      
+    /* Контент */
+    .content {
+        flex: 1;
+        padding-top: 20px;
+    }
 
     .header {
         text-align: center;
@@ -124,12 +86,13 @@
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
         gap: 20px;
-        max-width: 1000px;
+        padding: 20px;
         margin: 0 auto;
     }
 
     .card {
         background: white;
+        padding: 20px;
         border-radius: 8px;
         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         /* text-align: center; */
@@ -170,21 +133,19 @@
     <div class="container">
       <div id="sidebar-container"></div>
       <div style="width: 100%;">
-        <div id="topbar-container"></div> <div class="fixed-text">Mission Control</div>
+        <div id="topbar-container"></div> <div class="fixed-text">AE.Hub Data</div>
           <main class="content">
-
-              <section class="dashboard"style="
-              padding-top: 40px;
-          ">
-                <div class="card">
-                    <iframe src="cockpit_one_pick_selection_panel.html" width="100%" height="800px" style="border: none;"></iframe>
-                </div>
+              <section class="dashboard">
+                <img src="./static/assets/images/38c665f6ac1a5cb4dbaf7b7b410e6415c6bddd4e.png" alt="AE Hub Data" width="50" onclick="window.location.href='aehub_data.html'" style="
+                width: 100%;
+                margin-right: -15px;
+                margin-bottom: -13px;"
+                >
               </section>
-
-
           </main>
       </div>
     </div>
 
 </body>
 </html>
+

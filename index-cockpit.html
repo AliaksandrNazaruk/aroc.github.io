@@ -35,51 +35,7 @@
                 }
             }
         });
-        
-
-        function initTimers() {
-            function startCountdown(elementId, durationInSeconds) {
-                let timerElement = document.getElementById(elementId);
-                if (!timerElement) return;
-
-                let remainingTime = durationInSeconds;
-
-                function updateTimerDisplay() {
-                    let hours = Math.floor(remainingTime / 3600);
-                    let minutes = Math.floor((remainingTime % 3600) / 60);
-                    let seconds = remainingTime % 60;
-
-                    let formattedTime =
-                        String(hours).padStart(2, '0') + 'h:' +
-                        String(minutes).padStart(2, '0') + 'm:' +
-                        String(seconds).padStart(2, '0') + 's';
-
-                    timerElement.textContent = formattedTime;
-                }
-
-                function countdown() {
-                    if (remainingTime > 0) {
-                        remainingTime--;
-                        updateTimerDisplay();
-                    } else {
-                        clearInterval(interval);
-                        timerElement.textContent = "Время истекло!";
-                    }
-                }
-
-                updateTimerDisplay();
-                let interval = setInterval(countdown, 1000);
-            }
-                // Запускаем таймеры с разным временем
-            startCountdown("timer1", 8 * 60 + 35); // 5 минут
-            startCountdown("timer2", 7 * 60 + 15); // 3 минуты 30 секунд
-            startCountdown("timer3", 7 * 60 + 5); // 10 минут 15 секунд
-            // Запускаем таймеры с разным временем
-            startCountdown("timer4", 6 * 60 + 55); // 5 минут
-            startCountdown("timer5", 13 * 60 + 12); // 3 минуты 30 секунд
-            startCountdown("timer6", 10 * 60 + 22); // 10 минут 15 секунд
-    }
-    </script>
+      </script>
     <style>
     .fixed-text {
         position: absolute;
@@ -96,7 +52,6 @@
     }
 
 
-
     @font-face {
         font-family: 'Sen';
         src: url('/fonts/Sen-Regular.ttf') format('truetype');
@@ -110,7 +65,12 @@
         font-weight: bold;
         font-style: normal;
     }
-    
+      
+    /* Контент */
+    .content {
+        flex: 1;
+        padding: 20px;
+    }
 
     .header {
         text-align: center;
@@ -124,12 +84,14 @@
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
         gap: 20px;
+        padding: 20px;
         max-width: 1000px;
         margin: 0 auto;
     }
 
     .card {
         background: white;
+        padding: 20px;
         border-radius: 8px;
         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         /* text-align: center; */
@@ -170,18 +132,54 @@
     <div class="container">
       <div id="sidebar-container"></div>
       <div style="width: 100%;">
-        <div id="topbar-container"></div> <div class="fixed-text">Mission Control</div>
+        <div id="topbar-container"></div> <div class="fixed-text">Welcome to AE.Hub</div>
           <main class="content">
+              <section class="dashboard">
+                    <div class="card">
+                        <h2 style="color: black;">Welcome <span class="highlight">Tanja</span> to AE.Hub by AROC Technologies</h2>
+                        <p>Our basics for managing the AE.01</p>
+                    </div>
 
-              <section class="dashboard"style="
-              padding-top: 40px;
-          ">
-                <div class="card">
-                    <iframe src="cockpit_one_pick_selection_panel.html" width="100%" height="800px" style="border: none;"></iframe>
-                </div>
+                    <div class="card">
+                        <h2>Pilot Academy</h2>
+                        <p>Learn to pilot AE.01 and unlock missions.</p>
+                        <p style="color: black;">Start your mission, now.</p>
+                        <button onclick="location.href='index-cockpit.html'">Start Mission
+                            <img src="./static/assets/images/286794566.svg" alt="AE Hub Data" width="50" onclick="window.location.href='index-cockpit.html'" style="
+                                    width: 20px;
+                                    margin-right: -15px;
+                                    margin-bottom: -13px;
+                                ">
+                        </button>
+                    </div>
+
+                    <div class="card">
+                        <h2>Mission Control</h2>
+                        <p>There are currently more than 50 robots in operation and 15 open orders in the queue.</p>
+                        <p style="color: black;">Start your mission, now.</p>
+                        <button onclick="location.href='mission_control.html'">Start Mission
+                            <img src="./static/assets/images/286794566.svg" alt="AE Hub Data" width="50" onclick="window.location.href='mission_control.html'" style="
+                                    width: 20px;
+                                    margin-right: -15px;
+                                    margin-bottom: -13px;
+                                ">
+                        </button>
+                    </div>
+
+                    <div class="card">
+                        <h2>AE Hub Data</h2>
+                        <p>Control center for all data and analyses.</p>
+                        <p style="color: black;">Start your mission, now.</p>
+                        <button onclick="location.href='aehub_data.html'">Start AE Hub Data
+                        <img src="./static/assets/images/286794566.svg" alt="AE Hub Data" width="50" onclick="window.location.href='aehub_data.html'" style="
+                                    width: 20px;
+                                    margin-right: -15px;
+                                    margin-bottom: -13px;
+                                ">
+                        </button>
+                    </div>
+
               </section>
-
-
           </main>
       </div>
     </div>

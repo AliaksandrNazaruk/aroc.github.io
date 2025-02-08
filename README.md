@@ -7,7 +7,7 @@ root/
 │
 ├── ../static/assets/images/
 │
-└── index.html
+└── index-cockpit.html
 ```
 
 ## Setup Instructions
@@ -25,9 +25,9 @@ To view this project locally:
 1. Navigate to the project directory:
    cd Aroc
 
-2. Open `build/index.html` in your browser:
+2. Open `build/index-cockpit.html` in your browser:
 
-   Open the `build/index.html` file in your preferred browser.
+   Open the `build/index-cockpit.html` file in your preferred browser.
 
 ## Assets
 

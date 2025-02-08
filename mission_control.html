@@ -36,7 +36,20 @@
             }
         });
         
-
+        document.addEventListener("DOMContentLoaded", function() {
+        fetch("mission_control_panel.html")
+        
+        .then(response => response.text())
+        .then(data => {document.getElementById("mission-control-container").innerHTML = data;
+        initTimers();})
+        });
+        document.addEventListener("DOMContentLoaded", function() {
+        fetch("automatic_pick_area_panel.html")
+        
+        .then(response => response.text())
+        .then(data => {document.getElementById("automatic-pick-area").innerHTML = data;
+        initTimers();})
+        });
         function initTimers() {
             function startCountdown(elementId, durationInSeconds) {
                 let timerElement = document.getElementById(elementId);
@@ -173,14 +186,21 @@
         <div id="topbar-container"></div> <div class="fixed-text">Mission Control</div>
           <main class="content">
 
-              <section class="dashboard"style="
-              padding-top: 40px;
-          ">
+              <section class="dashboard">
                 <div class="card">
-                    <iframe src="cockpit_one_pick_selection_panel.html" width="100%" height="800px" style="border: none;"></iframe>
+                    <div id="mission-control-container"></div>
                 </div>
               </section>
 
+              <section class="dashboard">
+                    <div style="height: 20px;"></div>
+              </section>
+
+              <section class="dashboard">
+                <div class="card">
+                    <div id="automatic-pick-area"></div>
+                </div>
+              </section>
 
           </main>
       </div>
