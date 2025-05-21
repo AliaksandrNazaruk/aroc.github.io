@@ -16,7 +16,7 @@ This document provides comprehensive documentation for the Robot Control Server 
 
 All API endpoints are relative to the base URL of your server:
 ```
-http://server:8000
+http://robot-server:8000
 ```
 
 ## Authentication
@@ -27,31 +27,31 @@ Currently, the API does not require authentication.
 
 ### Depth Camera
 ```websocket
-ws://server:8000/depth
+ws://robot-server:8000/depth
 ```
 Proxies to `ws://192.168.1.55:9999`
 
 ### Depth Query Camera
 ```websocket
-ws://your-server:8000/depth_query
+ws://robot-server:8000/depth_query
 ```
 Proxies to `ws://192.168.1.55:10000`
 
 ### Color Camera
 ```websocket
-ws://your-server:8000/color
+ws://robot-server:8000/color
 ```
 Proxies to `ws://192.168.1.55:9998`
 
 ### Secondary Camera
 ```websocket
-ws://server:8000/camera2
+ws://robot-server:8000/camera2
 ```
 Proxies to `ws://localhost:9998`
 
 ### Igus Motor
 ```websocket
-ws://server:8000/igus
+ws://robot-server:8000/igus
 ```
 Proxies to `ws://localhost:8020`
 
@@ -291,17 +291,17 @@ Error responses include a JSON object with an error message:
 
 ### Starting a New AGV Job
 ```bash
-curl -X GET "http://your-server:8000/api/symovo_car/new_job?name=position1"
+curl -X GET "http://robot-server:8000/api/symovo_car/new_job?name=position1"
 ```
 
 ### Executing an Igus Command
 ```bash
-curl -X GET "http://your-server:8000/api/igus/command_operator?command=move&position=100&velocity=50&acceleration=25"
+curl -X GET "http://robot-server:8000/api/igus/command_operator?command=move&position=100&velocity=50&acceleration=25"
 ```
 
 ### Running a Script
 ```bash
-curl -X POST "http://your-server:8000/run_script" \
+curl -X POST "http://robot-server:8000/run_script" \
      -H "Content-Type: application/json" \
      -d '{"command": "script_name"}'
 ```
