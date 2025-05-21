@@ -1,9 +1,9 @@
 from gpiozero import LED
 from time import sleep
-import symovo_lib
-import igus_lib
-import robot_lib
-import xarm_positions
+import middle_level.symovo_lib as symovo_lib
+import middle_level.igus_lib as igus_lib
+import middle_level.robot_lib as robot_lib
+import low_level.xarm_positions as xarm_positions
 
 relay = LED(17)
 
