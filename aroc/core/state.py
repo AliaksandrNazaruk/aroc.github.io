@@ -1,6 +1,7 @@
 import threading
 from typing import Optional
 from drivers.igus_scripts.igus_motor import IgusMotor
+from core.logger import server_logger
 
 from core.configuration import symovo_car_ip, symovo_car_number, igus_motor_ip, igus_motor_port
 from services.robot_lib import XarmClient
@@ -27,6 +28,3 @@ def init_igus_motor(ip, port):
     return
 
 symovo_car.start_polling(interval=10)
-
-
-server_logger = None

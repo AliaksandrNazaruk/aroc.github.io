@@ -3,6 +3,7 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import Dict, Any, Optional
+from core.logger import server_logger
 router = APIRouter(prefix="/api/igus", tags=["igus_persistent"])
 
 
@@ -39,6 +40,7 @@ async def move_motor(params: MoveParams):
             "error": igus_motor.get_error(),
         }
     except Exception as e:
+        server_logger.log_event('error', f'move_to_position failed: {e}')
         return {
             "success": False,
             "position": igus_motor._position,
@@ -58,6 +60,7 @@ async def reference_motor():
             "state": igus_motor.get_status()
         }
     except Exception as e:
+        server_logger.log_event('error', f'reference_motor failed: {e}')
         return {
             "success": False,
             "result": None,
@@ -79,6 +82,7 @@ async def reset_faults():
             "state": igus_motor.get_status(),
         }
     except Exception as e:
+        server_logger.log_event('error', f'fault_reset failed: {e}')
         return {
             "success": False,
             "result": None,
