@@ -1,0 +1,48 @@
+from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
+from contextlib import asynccontextmanager
+
+from routes.api import igus, symovo, xarm
+from routes.websocket import ws
+from routes.misc import misc
+from core.configuration import igus_motor_ip, igus_motor_port
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    from db.trajectory import init_trajectory_table
+    from db.regals import init_regals_table
+    from core.state import symovo_car
+    from core.state import xarm_client
+    from core.state import igus_client
+    from core.state import init_igus_motor
+    # Инициализируем клиент
+    await xarm_client.__aenter__()
+    await igus_client.__aenter__()
+        
+    init_igus_motor(igus_motor_ip, igus_motor_port)
+    init_trajectory_table()
+    init_regals_table()
+    symovo_car.start_polling(interval=10)
+    app.include_router(igus.router)
+    app.include_router(symovo.router)
+    app.include_router(xarm.router)
+    app.include_router(ws.router)
+    app.include_router(misc.router)
+
+    print("Startup OK.")
+    yield
+
+    await xarm_client.__aexit__(None, None, None)
+    await igus_client.__aexit__(None, None, None)
+
+
+app = FastAPI(lifespan=lifespan)
+
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
+
+
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
