@@ -8,10 +8,12 @@ import sys
 import arduino_controller.arduino_led_controller as als
 import subprocess
 
+from core.connection_config import camera_depth_ws_url
+
 # Глобальные переменные
 current_depth_image = None
 window_name = "Depth Stream"
-ws_url = f"ws://127.0.0.1:9999"
+ws_url = camera_depth_ws_url
 
 # Глобальная переменная для хранения координат выделенного прямоугольника
 highlighted_rectangle = None

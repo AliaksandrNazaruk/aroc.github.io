@@ -6,12 +6,14 @@ import cv2
 import socket
 import subprocess
 
+from core.connection_config import camera_depth_ws_url
+
 # Глобальные переменные
 current_depth_image = None
 highlighted_rectangle = None  # Координаты прямоугольника
 object_text = ""  # Текст аннотации
 window_name = "Depth Stream"
-ws_url = f"ws://{socket.gethostname()}:9999"
+ws_url = camera_depth_ws_url
 center_coordinates = None  # Координаты центра квадрата
 
 def calculate_camera_shift(center_x, center_y, object_x, object_y, depth_image, fx, fy):

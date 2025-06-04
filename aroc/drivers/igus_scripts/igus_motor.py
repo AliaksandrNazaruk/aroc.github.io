@@ -190,7 +190,8 @@ class IgusMotor:
 
 # === Пример использования ===
 if __name__ == "__main__":
-    motor = IgusMotor("192.168.1.230")
+    from core.connection_config import igus_motor_ip, igus_motor_port
+    motor = IgusMotor(igus_motor_ip, igus_motor_port)
     position = 5000
     try:
         if motor.is_homed():

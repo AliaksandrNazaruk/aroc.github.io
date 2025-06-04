@@ -1,8 +1,11 @@
 import requests
-ip = "192.168.1.10"
+
+from core.connection_config import web_server_ip, web_server_port
+
+ip = web_server_ip
 
 def send_to_arduino(command):
-    url = f"http://{ip}:8000/send"
+    url = f"http://{ip}:{web_server_port}/send"
     headers = {
         "Content-Type": "application/json",
     }
