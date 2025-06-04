@@ -1,6 +1,13 @@
 from xarm.wrapper import XArmAPI
-import arduino_controller.arduino_led_controller as als
-from drivers.xarm_scripts import get_robot_data, take, put, move_to_position, get_position, move_tool_position, move_to_pose
+from drivers.xarm_scripts import (
+    get_robot_data,
+    take,
+    put,
+    move_to_position,
+    get_position,
+    move_tool_position,
+    move_to_pose,
+)
 from core.configuration import xarm_manipulator_ip
 import logging
 
@@ -63,7 +70,11 @@ def xarm_command_operator(data):
             
         # Execute command
         result = robot_main.run(data)
-        
+
+        # Normalize result - treat various implementations consistently
+        if result in (False, None, "error"):
+            raise RuntimeError(f"{data['command']} execution failed")
+
         return {
             "success": True,
             "result": result,

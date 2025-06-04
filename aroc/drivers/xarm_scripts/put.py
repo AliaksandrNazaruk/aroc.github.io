@@ -119,9 +119,14 @@ class RobotMain(object):
             for i in range(int(1)):
                 if not self.is_alive:
                     break
-                code = self.gripper.deactivate()         
+                code = self.gripper.deactivate()
                 if code == [1, 8, 0, 1, 0, 0, 41, 1, 0, 0, 220]:
-                    return 'success'
+                    result = 'success'
+                else:
+                    result = 'error'
+                if result != 'success':
+                    raise RuntimeError("put failed")
+                return result
                 
         except Exception as e:
             self.pprint('MainException: {}'.format(e))
@@ -130,8 +135,8 @@ class RobotMain(object):
         self._arm.release_state_changed_callback(self._state_changed_callback)
         if hasattr(self._arm, 'release_count_changed_callback'):
             self._arm.release_count_changed_callback(self._count_changed_callback)
-        
-        return 'error'
+
+        raise RuntimeError("put failed")
 
 
 # arm = XArmAPI('192.168.1.220', baud_checkset=False)
