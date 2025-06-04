@@ -208,6 +208,56 @@ Starts a new job for the AGV to move to a specified position.
 }
 ```
 
+### Get Maps
+```http
+GET /api/symovo_car/maps
+```
+
+Returns the list of available maps from the AGV.
+
+### Move to Pose
+```http
+POST /api/symovo_car/go_to_pose
+```
+
+Moves the AGV to an arbitrary pose.
+
+**Request Body:**
+```json
+{
+    "x": number,
+    "y": number,
+    "theta": number,
+    "map_id": string,
+    "max_speed": number
+}
+```
+
+**Response:**
+```json
+{
+    "status": "ok",
+    "result": object
+}
+```
+
+### Check Pose
+```http
+POST /api/symovo_car/check_pose
+```
+
+Checks if the given pose is reachable by the AGV.
+
+### Task Status
+```http
+GET /api/symovo_car/task_status
+```
+
+Query Parameters:
+- `task_id` (string, required): Identifier of the task returned when moving the AGV.
+
+Returns status information for the specified task.
+
 ## XArm API
 
 ### Get XArm State

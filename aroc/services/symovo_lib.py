@@ -58,6 +58,14 @@ class AgvClient:
     def _get_job_url(self):
         """Generate URL for job requests."""
         return f"https://{self.ip}/v0/job"
+
+    def _get_v1_robot_url(self):
+        """Generate base URL for v1 robot requests."""
+        return f"https://{self.ip}/v1/robots/{self.robot_number}"
+
+    def _get_v1_maps_url(self):
+        """Generate URL for v1 maps list."""
+        return f"https://{self.ip}/v1/maps"
     
     def _get_stations_url(self):
         """Generate URL for station list requests."""
@@ -216,6 +224,71 @@ class AgvClient:
             print("Error: invalid JSON in response.")
             self.online = False
             return False
+
+    def get_maps(self):
+        """Возвращает список доступных карт."""
+        url = self._get_v1_maps_url()
+        try:
+            response = requests.get(url, verify=False, timeout=10)
+            response.raise_for_status()
+            return response.json()
+        except requests.exceptions.RequestException as e:
+            print(f"Error getting maps: {e}")
+            return None
+        except ValueError:
+            print("Error: invalid JSON in response.")
+            return None
+
+    def move_to(self, x: float, y: float, theta: float = 0, map_id: str | None = None, max_speed: float | None = None):
+        """Отправляет AGV к произвольной координате."""
+        url = f"{self._get_v1_robot_url()}/move_to"
+        payload = {"x": x, "y": y, "theta": theta}
+        if map_id is not None:
+            payload["mapId"] = map_id
+        if max_speed is not None:
+            payload["maxSpeed"] = max_speed
+
+        try:
+            response = requests.post(url, json=payload, verify=False, timeout=15)
+            response.raise_for_status()
+            return response.json()
+        except requests.exceptions.RequestException as e:
+            print(f"Error moving AGV: {e}")
+            return None
+        except ValueError:
+            print("Error: invalid JSON in response.")
+            return None
+
+    def check_reachability(self, x: float, y: float, theta: float = 0, map_id: str | None = None):
+        """Проверяет достижимость точки (если поддерживается API)."""
+        url = f"{self._get_v1_robot_url()}/reachable"
+        payload = {"x": x, "y": y, "theta": theta}
+        if map_id is not None:
+            payload["mapId"] = map_id
+        try:
+            response = requests.post(url, json=payload, verify=False, timeout=10)
+            response.raise_for_status()
+            return response.json()
+        except requests.exceptions.RequestException as e:
+            print(f"Error checking reachability: {e}")
+            return None
+        except ValueError:
+            print("Error: invalid JSON in response.")
+            return None
+
+    def get_task_status(self, task_id: str):
+        """Возвращает статус задачи по ID."""
+        url = f"https://{self.ip}/v0/transport/{task_id}"
+        try:
+            response = requests.get(url, verify=False, timeout=10)
+            response.raise_for_status()
+            return response.json()
+        except requests.exceptions.RequestException as e:
+            print(f"Error getting task status: {e}")
+            return None
+        except ValueError:
+            print("Error: invalid JSON in response.")
+            return None
         
     def find_nearest_station(self):
         """
