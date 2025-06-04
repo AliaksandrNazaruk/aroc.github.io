@@ -6,6 +6,14 @@ import logging
 
 import websockets
 
+from core.connection_config import (
+    realsense_color_host,
+    realsense_color_port,
+    realsense_depth_host,
+    realsense_depth_port,
+)
+from core.robot_params import camera_fps
+
 from camera import init_realsense
 from ffmpeg_utils import start_ffmpeg, start_depth_ffmpeg
 from websocket_handlers import handle_color_connection, handle_depth_connection
@@ -23,10 +31,26 @@ async def main():
     pipeline = init_realsense()
 
     # Запуск WebSocket серверов
-    color_server = await websockets.serve(handle_color_connection, "0.0.0.0", 9998,ping_interval=5, ping_timeout=5, close_timeout=2)
-    depth_server = await websockets.serve(handle_depth_connection, "0.0.0.0", 9999,ping_interval=5, ping_timeout=5, close_timeout=2
-                                          )
-    logger.info("WebSocket серверы запущены: цветной (порт 9998), глубинный (порт 9999).")
+    color_server = await websockets.serve(
+        handle_color_connection,
+        realsense_color_host,
+        realsense_color_port,
+        ping_interval=5,
+        ping_timeout=5,
+        close_timeout=2,
+    )
+    depth_server = await websockets.serve(
+        handle_depth_connection,
+        realsense_depth_host,
+        realsense_depth_port,
+        ping_interval=5,
+        ping_timeout=5,
+        close_timeout=2,
+    )
+    logger.info(
+        f"WebSocket серверы запущены: цветной (порт {realsense_color_port}), "
+        f"глубинный (порт {realsense_depth_port})."
+    )
 
     # Запуск ffmpeg-процессов
     ffmpeg_proc = start_ffmpeg()

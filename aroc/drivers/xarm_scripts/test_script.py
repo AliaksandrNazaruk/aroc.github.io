@@ -155,7 +155,8 @@ class RobotMain(object):
 
 
 if __name__ == '__main__':
+    from core.connection_config import xarm_manipulator_ip
     RobotMain.pprint('xArm-Python-SDK Version:{}'.format(version.__version__))
-    arm = XArmAPI('192.168.1.220', baud_checkset=False)
+    arm = XArmAPI(xarm_manipulator_ip, baud_checkset=False)
     robot_main = RobotMain(arm)
     robot_main.run()

@@ -1,7 +1,6 @@
 import time
 from drivers.igus_scripts.igus_motor import IgusMotor  # Импортируй правильно свой класс
-
-MOTOR_IP = "192.168.1.230"  # Поставь реальный IP
+from core.connection_config import igus_motor_ip as MOTOR_IP
 
 def test_connection(motor):
     print("[TEST] Проверка соединения")

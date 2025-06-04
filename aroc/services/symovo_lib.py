@@ -5,7 +5,7 @@ from datetime import datetime
 import math
 requests.packages.urllib3.disable_warnings()
 # import services.igus_lib as igus_lib
-from core.configuration import symovo_car_ip, symovo_car_number
+from core.connection_config import symovo_car_ip, symovo_car_number
 def get_job_from_name(list,name):
     for job in list:
         if name == job['name']:

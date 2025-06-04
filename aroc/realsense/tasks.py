@@ -11,7 +11,8 @@ logger = logging.getLogger("tasks")
 from websocket_handlers import connected_color_clients, connected_depth_clients
 
 async def capture_frames_task(pipeline, ffmpeg_proc, depth_ffmpeg_proc, depth_info_queue):
-    fps = 15
+    from core.robot_params import camera_fps
+    fps = camera_fps
     frame_interval = 1.0 / fps
     while True:
         try:

@@ -4,10 +4,12 @@ import numpy as np
 import pyrealsense2 as rs
 import logging
 
+from core.robot_params import camera_width, camera_height, camera_fps
+
 logger = logging.getLogger("camera")
 # 141722072135
 # 048522073892
-def init_realsense(serial_number="141722072135", width=640, height=480, fps_color=15, fps_depth=15):
+def init_realsense(serial_number="141722072135", width=camera_width, height=camera_height, fps_color=camera_fps, fps_depth=camera_fps):
     pipeline = rs.pipeline(rs.context())
     config = rs.config()
     config.enable_device(serial_number)

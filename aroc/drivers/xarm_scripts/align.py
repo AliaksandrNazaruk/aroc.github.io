@@ -30,6 +30,8 @@ import numpy as np
 from PIL import Image
 from io import BytesIO
 
+from core.connection_config import camera_depth_ws_url
+
 
 # Получение имени хоста
 hostname = socket.gethostname()
@@ -66,7 +68,7 @@ def process_depth_data(base64_data):
 
 # Переменные для управления
 max_frames = 5  # Количество кадров для получения
-ws_url = f"ws://{socket.gethostname()}:9999"
+ws_url = camera_depth_ws_url
 data = []
 
 def process_frames():
@@ -211,9 +213,10 @@ class RobotMain(object):
 
 
 if __name__ == '__main__':
+    from core.connection_config import xarm_manipulator_ip
     try:
         RobotMain.pprint('xArm-Python-SDK Version:{}'.format(version.__version__))
-        arm = XArmAPI('192.168.1.220', baud_checkset=False)
+        arm = XArmAPI(xarm_manipulator_ip, baud_checkset=False)
         robot_main = RobotMain(arm)
 
         if robot_main.run():
