@@ -55,6 +55,20 @@ class XarmClient:
             print(e)
             return None
 
+    async def move_tool_position(self, x: float, y: float, z: float, angle_speed=20):
+        """Move tool by XYZ coordinates relative to the current pose."""
+        try:
+            return await self.execute_command(
+                "move_tool_position",
+                x=x,
+                y=y,
+                z=z,
+                angle_speed=angle_speed,
+            )
+        except Exception as e:
+            print(e)
+            return None
+
 
 import aiohttp
 import asyncio

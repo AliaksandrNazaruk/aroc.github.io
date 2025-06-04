@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from contextlib import asynccontextmanager
 
-from routes.api import igus, symovo, xarm
+from routes.api import igus, symovo, xarm, system
 from routes.websocket import ws
 from routes.misc import misc
 from core.configuration import igus_motor_ip, igus_motor_port
@@ -27,6 +27,7 @@ async def lifespan(app: FastAPI):
     app.include_router(igus.router)
     app.include_router(symovo.router)
     app.include_router(xarm.router)
+    app.include_router(system.router)
     app.include_router(ws.router)
     app.include_router(misc.router)
 
