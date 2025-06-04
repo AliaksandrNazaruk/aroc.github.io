@@ -1,63 +1,29 @@
 # Robot Control Server API Documentation
 
-This document provides comprehensive documentation for the Robot Control Server API. The server provides endpoints for controlling various robotic components including Igus motors, Symovo AGV, XArm, and Arduino devices.
+This document provides comprehensive documentation for the Robot Control Server API. The server provides endpoints for controlling various robotic components including Igus motors, Symovo AGV, and XArm.
 
 ## Table of Contents
 - [Base URL](#base-url)
 - [Authentication](#authentication)
-- [WebSocket Endpoints](#websocket-endpoints)
 - [Igus Motor API](#igus-motor-api)
 - [Symovo AGV API](#symovo-agv-api)
 - [XArm API](#xarm-api)
-- [Miscellaneous Endpoints](#miscellaneous-endpoints)
 - [Error Handling](#error-handling)
 
 ## Base URL
 
 All API endpoints are relative to the base URL of your server:
 ```
-http://robot-server:8000
+http://your-server:8000
 ```
 
 ## Authentication
 
 Currently, the API does not require authentication.
 
-## WebSocket Endpoints
-
-### Depth Camera
-```websocket
-ws://robot-server:8000/depth
-```
-Proxies to `ws://192.168.1.55:9999`
-
-### Depth Query Camera
-```websocket
-ws://robot-server:8000/depth_query
-```
-Proxies to `ws://192.168.1.55:10000`
-
-### Color Camera
-```websocket
-ws://robot-server:8000/color
-```
-Proxies to `ws://192.168.1.55:9998`
-
-### Secondary Camera
-```websocket
-ws://robot-server:8000/camera2
-```
-Proxies to `ws://localhost:9998`
-
-### Igus Motor
-```websocket
-ws://robot-server:8000/igus
-```
-Proxies to `ws://localhost:8020`
-
 ## Igus Motor API
 
-### Get Motor State
+### Get Motor Data
 ```http
 GET /api/igus/data
 ```
@@ -67,28 +33,95 @@ Returns the current state of the Igus motor.
 **Response:**
 ```json
 {
-    "active": boolean,
-    "ready": boolean,
-    "connected": boolean,
-    "last_update_str": string,
+    "status": object,
     "error": string,
-    "homing": boolean
+    "connected": boolean,
+    "position": number
 }
 ```
 
-### Execute Command
+### Get Motor State
 ```http
-GET /api/igus/command_operator
+GET /api/igus/state
 ```
 
-Executes a command on the Igus motor.
+Returns detailed state information about the Igus motor.
 
-**Parameters:**
-- `command` (string, required): Command to execute
-- `position` (integer, required): Target position
-- `velocity` (integer, required): Movement velocity
-- `acceleration` (integer, required): Movement acceleration
-- `wait` (boolean, optional, default: true): Whether to wait for command completion
+**Response:**
+```json
+{
+    "status": object,
+    "homing": boolean,
+    "error": string,
+    "connected": boolean,
+    "position": number
+}
+```
+
+### Move to Position
+```http
+POST /api/igus/move_to_position
+```
+
+Moves the motor to a specified position.
+
+**Request Body:**
+```json
+{
+    "position": number,
+    "velocity": number,
+    "acceleration": number,
+    "wait": boolean
+}
+```
+
+**Response:**
+```json
+{
+    "success": boolean,
+    "position": number,
+    "state": object,
+    "error": string
+}
+```
+
+### Reference Motor
+```http
+POST /api/igus/reference
+```
+
+Performs homing operation on the motor.
+
+**Response:**
+```json
+{
+    "success": boolean,
+    "result": {
+        "homing": boolean
+    },
+    "error": string,
+    "state": object
+}
+```
+
+### Reset Faults
+```http
+POST /api/igus/fault_reset
+```
+
+Resets any active faults on the motor.
+
+**Response:**
+```json
+{
+    "success": boolean,
+    "result": {
+        "fault_reset": boolean
+    },
+    "error": string,
+    "state": object
+}
+```
 
 ## Symovo AGV API
 
@@ -149,6 +182,15 @@ Starts a new job for the AGV to move to a specified position.
 **Parameters:**
 - `name` (string, required): Name of the target position
 
+**Response:**
+```json
+{
+    "status": "ok",
+    "message": string,
+    "result": object
+}
+```
+
 ## XArm API
 
 ### Get XArm State
@@ -157,6 +199,13 @@ GET /api/xarm/data
 ```
 
 Returns the current state of the XArm robot.
+
+**Response:**
+```json
+{
+    "message": string  // "manipulator is busy" or actual data
+}
+```
 
 ### Execute Command
 ```http
@@ -173,102 +222,15 @@ Executes a command on the XArm robot.
 }
 ```
 
-## Miscellaneous Endpoints
-
-### Get Root Page
-```http
-GET /
-```
-Serves the main index.html page.
-
-### Get Control Page
-```http
-GET /control
-```
-Serves the control interface page.
-
-### Get Job Status
-```http
-GET /job_status
-```
-Returns the current job status.
-
 **Response:**
-```json
-{
-    "done": boolean
-}
-```
+- Success: Command execution result
+- Error: Error message with appropriate HTTP status code
 
-### Get Script Status
-```http
-GET /script_status
-```
-Returns the current script execution status.
-
-**Response:**
-```json
-{
-    "status": string  // One of: "WORKING", "FINISHED", "NOT_RUNNING", "STOPPED", "FAILED"
-}
-```
-
-### Stop Script
-```http
-GET /stop_script
-```
-Stops the currently running script.
-
-### Check Server Status
-```http
-GET /status
-```
-Checks the server's operational status.
-
-### Send Arduino Command
-```http
-POST /api/arduino/send
-```
-Sends a command to the Arduino controller.
-
-**Request Body:**
-```json
-{
-    "command": string
-}
-```
-
-### Echo Endpoint
-```http
-POST /echo
-```
-Echoes back the received data (useful for testing).
-
-### Submit Job
-```http
-POST /submit
-```
-Submits a new job for execution.
-
-**Request Body:**
-```json
-{
-    // Job-specific parameters
-}
-```
-
-### Run Script
-```http
-POST /run_script
-```
-Starts execution of a script.
-
-**Request Body:**
-```json
-{
-    "command": string
-}
-```
+**Possible Error Responses:**
+- 409: Manipulator is busy with another command
+- 408: Command execution timed out
+- 400: Invalid command
+- 500: Internal server error
 
 ## Error Handling
 
@@ -277,6 +239,8 @@ The API uses standard HTTP status codes to indicate the success or failure of re
 - `200 OK`: Request succeeded
 - `400 Bad Request`: Invalid request parameters
 - `404 Not Found`: Resource not found
+- `408 Request Timeout`: Command execution timed out
+- `409 Conflict`: Resource is busy
 - `500 Internal Server Error`: Server-side error
 
 Error responses include a JSON object with an error message:
@@ -287,27 +251,9 @@ Error responses include a JSON object with an error message:
 }
 ```
 
-## Examples
-
-### Starting a New AGV Job
-```bash
-curl -X GET "http://robot-server:8000/api/symovo_car/new_job?name=position1"
-```
-
-### Executing an Igus Command
-```bash
-curl -X GET "http://robot-server:8000/api/igus/command_operator?command=move&position=100&velocity=50&acceleration=25"
-```
-
-### Running a Script
-```bash
-curl -X POST "http://robot-server:8000/run_script" \
-     -H "Content-Type: application/json" \
-     -d '{"command": "script_name"}'
-```
-
 ## Notes
 
 - All timestamps are in ISO 8601 format
-- WebSocket connections should implement proper error handling and reconnection logic
-- Some endpoints may have additional parameters not documented here; refer to the source code for complete details
+- XArm commands have a default timeout of 30 seconds
+- The XArm API uses a lock mechanism to prevent concurrent command execution
+- Some endpoints may have additional parameters not documented here; refer to the source code for complete details 
