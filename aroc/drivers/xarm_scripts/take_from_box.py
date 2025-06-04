@@ -30,21 +30,21 @@ from xarm.wrapper import XArmAPI
 
 
 
-# Допустим, что у нас известны параметры звеньев (примерные данные)
-link_lengths = [0.3, 0.25, 0.2]  # Длины звеньев в метрах
-gravitational_acceleration = 9.81  # Ускорение свободного падения
+# Example link parameters (approximate values)
+link_lengths = [0.3, 0.25, 0.2]  # Link lengths in meters
+gravitational_acceleration = 9.81  # Acceleration due to gravity
 
-# Пример вычисления нагрузки
+# Sample load calculation
 def estimate_mass(servo_states, position):
-    # Извлекаем токи двигателей (упрощённый пример для одного звена)
-    current = servo_states[1]['current']  # Ток на втором звене
-    torque_constant = 0.1  # Номинальный коэффициент момента для моторов (Nm/A)
+    # Extract motor currents (simplified example for one link)
+    current = servo_states[1]['current']  # Current on the second joint
+    torque_constant = 0.1  # Nominal torque constant for the motors (Nm/A)
 
-    # Вычисляем момент
+    # Calculate torque
     torque = current * torque_constant
 
-    # Вычисляем массу объекта (с учётом плеча силы)
-    length = link_lengths[1]  # Длина второго звена
+    # Compute object mass considering lever arm
+    length = link_lengths[1]  # Length of the second link
     mass = torque / (length * gravitational_acceleration)
     return mass
 
@@ -186,12 +186,12 @@ correct_j6 = 0
 if __name__ == '__main__':
     try:
         if len(sys.argv) != 6:
-            print("Ошибка: скрипт ожидает ровно 5 аргументa.")
+            print("Error: the script expects exactly 5 arguments.")
             sys.exit(1)
         try:
             x, y, z, w, h = map(float, sys.argv[1:6])
         except ValueError:
-            print("Ошибка: все аргументы должны быть числами (float).")
+            print("Error: all arguments must be numbers (float).")
             sys.exit(1)
 
         print(f"x = {x}, y = {y}, z = {z},w = {y}, h = {z}")

@@ -53,7 +53,7 @@ async def reference_motor():
         await run_in_threadpool(igus_motor.home)
         return {
             "success": True,
-            "result": {"homing": igus_motor._homed},  # помещаем в result
+            "result": {"homing": igus_motor._homed},  # included in result
             "error": igus_motor.get_error(),
             "state": igus_motor.get_status()
         }

@@ -12,7 +12,7 @@ async def start_ffmpeg(width=camera_width, height=camera_height, fps=camera_fps)
         '-pixel_format', 'bgr24',
         '-video_size', f'{width}x{height}',
         '-framerate', str(fps),
-        '-i', '-',  # вход из stdin
+        '-i', '-',  # input from stdin
         '-vf', 'format=yuv420p',
         '-c:v', 'libx264',
         '-preset', 'ultrafast',
@@ -20,9 +20,9 @@ async def start_ffmpeg(width=camera_width, height=camera_height, fps=camera_fps)
         '-g', str(fps),
         '-x264opts', f'keyint={fps}:scenecut=0:repeat-headers=1',
         '-f', 'h264',
-        '-'  # вывод в stdout
+        '-'  # output to stdout
     ]
-    logger.info("Запуск ffmpeg для цветного потока: " + " ".join(cmd))
+    logger.info("Starting ffmpeg for color stream: " + " ".join(cmd))
     proc = await asyncio.create_subprocess_exec(*cmd,
                                                  stdin=asyncio.subprocess.PIPE,
                                                  stdout=asyncio.subprocess.PIPE,
@@ -36,7 +36,7 @@ async def start_depth_ffmpeg(width=camera_width, height=camera_height, fps=camer
         '-pixel_format', 'bgr24',
         '-video_size', f'{width}x{height}',
         '-framerate', str(fps),
-        '-i', '-',  # вход из stdin
+        '-i', '-',  # input from stdin
         '-vf', 'format=yuv420p',
         '-c:v', 'libx264',
         '-preset', 'ultrafast',
@@ -44,9 +44,9 @@ async def start_depth_ffmpeg(width=camera_width, height=camera_height, fps=camer
         '-g', str(fps),
         '-x264opts', f'keyint={fps}:scenecut=0:repeat-headers=1',
         '-f', 'h264',
-        '-'  # вывод в stdout
+        '-'  # output to stdout
     ]
-    logger.info("Запуск ffmpeg для глубинного потока: " + " ".join(cmd))
+    logger.info("Starting ffmpeg for depth stream: " + " ".join(cmd))
     proc = await asyncio.create_subprocess_exec(*cmd,
                                                  stdin=asyncio.subprocess.PIPE,
                                                  stdout=asyncio.subprocess.PIPE,

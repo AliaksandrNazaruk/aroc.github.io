@@ -48,26 +48,26 @@ class AgvClient:
         self._polling_thread = None
 
     def _get_robot_url(self):
-        """Генерирует URL для запроса данных AGV."""
+        """Generate URL for AGV data request."""
         return f"https://{self.ip}/v0/agv/{self.robot_number}"
     
     def _get_transport_url(self):
-        """Генерирует URL для запроса данных AGV."""
+        """Generate URL for transport requests."""
         return f"https://{self.ip}/v0/transport"
     
     def _get_job_url(self):
-        """Генерирует URL для запроса данных AGV."""
+        """Generate URL for job requests."""
         return f"https://{self.ip}/v0/job"
     
     def _get_stations_url(self):
-        """Генерирует URL для запроса данных AGV."""
+        """Generate URL for station list requests."""
         return f"https://{self.ip}/v0/station"
     
     def poll(self):
         """
-        Опрос AGV (GET-запрос).
-        При удачном ответе обновляет все поля класса.
-        При ошибке выставляет self.online = False.
+        Poll the AGV via a GET request.
+        On success all class fields are updated.
+        On error self.online is set to False.
         """
         url = self._get_robot_url()
         try:
@@ -110,12 +110,12 @@ class AgvClient:
             self.planned_path_edges = data.get('planned_path_edges', [])
 
         except requests.exceptions.RequestException as e:
-            # Ошибка при запросе
-            print(f"Ошибка при опросе AGV: {e}")
+            # Error during request
+            print(f"Error polling AGV: {e}")
             self.online = False
         except ValueError:
-            # Некорректный JSON
-            print("Ошибка: некорректный JSON в ответе.")
+            # Malformed JSON response
+            print("Error: invalid JSON in response.")
             self.online = False
 
     def start_polling(self, interval=5):
@@ -148,13 +148,13 @@ class AgvClient:
             data = response.json()
             return data
         except requests.exceptions.RequestException as e:
-            # Ошибка при запросе
-            print(f"Ошибка при опросе AGV: {e}")
+            # Error during request
+            print(f"Error polling AGV: {e}")
             self.online = False
             return False
         except ValueError:
-            # Некорректный JSON
-            print("Ошибка: некорректный JSON в ответе.")
+            # Malformed JSON
+            print("Error: invalid JSON in response.")
             self.online = False
             return False
 
@@ -164,7 +164,7 @@ class AgvClient:
         }
         job_id = job.get('id') 
         if not job_id:
-            print("Ошибка: задание не содержит 'id'.")
+            print("Error: job does not contain 'id'.")
             return False
         url = self._get_transport_url()
         put_create_transport_from_job = f"{url}/create_from_job/{job_id}"
@@ -175,10 +175,10 @@ class AgvClient:
             data = response.json()
             return data
         except requests.exceptions.RequestException as e:
-            print("Ошибка при выполнении PUT-запроса:", e)
+            print("Error performing PUT request:", e)
             return False
         except ValueError:
-            print("Ошибка: некорректный JSON в ответе.")
+            print("Error: invalid JSON in response.")
             return False
 
     def get_robot_position(self):
@@ -190,13 +190,13 @@ class AgvClient:
             data = response.json()
             return data["pose"]["x"], data["pose"]["y"]
         except requests.exceptions.RequestException as e:
-            # Ошибка при запросе
-            print(f"Ошибка при опросе AGV: {e}")
+            # Error during request
+            print(f"Error polling AGV: {e}")
             self.online = False
             return False
         except ValueError:
-            # Некорректный JSON
-            print("Ошибка: некорректный JSON в ответе.")
+            # Malformed JSON
+            print("Error: invalid JSON in response.")
             self.online = False
             return False
 
@@ -207,13 +207,13 @@ class AgvClient:
             response = requests.get(url, verify=False, timeout=10)
             return response.json()
         except requests.exceptions.RequestException as e:
-            # Ошибка при запросе
-            print(f"Ошибка при опросе AGV: {e}")
+            # Error during request
+            print(f"Error polling AGV: {e}")
             self.online = False
             return False
         except ValueError:
-            # Некорректный JSON
-            print("Ошибка: некорректный JSON в ответе.")
+            # Malformed JSON
+            print("Error: invalid JSON in response.")
             self.online = False
             return False
         

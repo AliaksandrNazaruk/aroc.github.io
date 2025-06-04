@@ -1,40 +1,41 @@
 import time
-from drivers.igus_scripts.igus_motor import IgusMotor  # Импортируй правильно свой класс
+
+from drivers.igus_scripts.igus_motor import IgusMotor  # Import your class correctly
 from core.connection_config import igus_motor_ip as MOTOR_IP
 
 def test_connection(motor):
-    print("[TEST] Проверка соединения")
-    assert motor.is_connected(), "Нет соединения!"
+    print("[TEST] Checking connection")
+    assert motor.is_connected(), "No connection!"
 
 def test_fault_reset(motor):
-    print("[TEST] Сброс ошибки")
+    print("[TEST] Fault reset")
     result = motor.fault_reset()
-    assert motor.is_connected(), "Соединение потеряно после сброса ошибки"
-    assert motor.get_error() is None, "Ошибка после fault_reset"
+    assert motor.is_connected(), "Connection lost after fault reset"
+    assert motor.get_error() is None, "Error after fault_reset"
 
 def test_home(motor):
-    print("[TEST] Хоминг")
+    print("[TEST] Homing")
     result = motor.home()
-    assert motor.is_homed(), "Homing не завершён"
-    assert motor.get_error() is None, "Ошибка после homing"
+    assert motor.is_homed(), "Homing not finished"
+    assert motor.get_error() is None, "Error after homing"
 
 def test_move(motor, target=12345):
-    print(f"[TEST] Перемещение к {target}")
+    print(f"[TEST] Moving to {target}")
     result = motor.move_to_position(target, velocity=4000, acceleration=1500)
     pos = motor.get_position()
-    print(f"[TEST] Ожидалось: {target}, фактическая позиция: {pos}")
-    assert abs(pos - target) < 500, f"Позиция не достигнута: {pos} (target {target})"
-    assert motor.get_error() is None, "Ошибка после движения"
+    print(f"[TEST] Expected: {target}, actual position: {pos}")
+    assert abs(pos - target) < 500, f"Position not reached: {pos} (target {target})"
+    assert motor.get_error() is None, "Error after movement"
 
 def test_reconnect(motor):
-    print("[TEST] Тест reconnect (искусственный разрыв)")
+    print("[TEST] Reconnect test (artificial disconnect)")
     motor.shutdown()
-    print("[TEST] Ждём 5 секунд перед reconnect...")
+    print("[TEST] Waiting 5 seconds before reconnect...")
     time.sleep(5)
     motor2 = IgusMotor(MOTOR_IP)
-    assert motor2.is_connected(), "Reconnect не удался"
-    assert motor2.get_error() is None, "Ошибка после reconnect"
-    # Вернуть мотор для дальнейших тестов
+    assert motor2.is_connected(), "Reconnect failed"
+    assert motor2.get_error() is None, "Error after reconnect"
+    # Return motor for further tests
     return motor2
 
 def test_status(motor):
@@ -111,7 +112,7 @@ def main():
     test_home(motor)
 
     print("=" * 60)
-    print("== ВСЕ ТЕСТЫ ПРОЙДЕНЫ УСПЕШНО! ==")
+    print("== ALL TESTS PASSED SUCCESSFULLY! ==")
     print("=" * 60)
     motor.shutdown()
 
@@ -120,9 +121,9 @@ if __name__ == "__main__":
         main()
     except AssertionError as e:
         print("\n[TEST] FAIL:", e)
-        print("== Тест остановлен из-за критической ошибки ==")
+        print("== Test stopped due to critical error ==")
         exit(1)
     except Exception as e:
         print("\n[TEST] EXCEPTION:", e)
-        print("== Тест остановлен по исключению ==")
+        print("== Test stopped by exception ==")
         exit(2)

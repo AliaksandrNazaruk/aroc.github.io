@@ -86,14 +86,14 @@ class RobotMain(object):
 
     # Robot Main Run
     def run(self, data=None):
-        """Собираем и возвращаем сводку состояния двигателя."""
+        """Collect and return a summary of the motor state."""
         try:
             position = self._motor.get_current_position()
-            active   = self._motor.get_motor_state()          # двигается ли сейчас
-            ready    = self._motor._is_ready()                # отхомингован, без ошибок, включён
+            active   = self._motor.get_motor_state()          # whether it is moving now
+            ready    = self._motor._is_ready()                # homed, no errors, powered on
             error    = self._motor._check_error()
             homing   = self._motor._check_homing_status()
-            status   = self._motor.send_command(MotorCommandBuilder.read_statusword())                                      # raw‑StatusWord, если нужно
+            status   = self._motor.send_command(MotorCommandBuilder.read_statusword())                                      # raw StatusWord if needed
 
             return {
                 "position": position,
@@ -102,7 +102,7 @@ class RobotMain(object):
                 "ready":    ready,
                 "error":    error,
                 "homing":   homing,
-                "statusword_raw": status                      # или уберите, если лишнее
+                "statusword_raw": status                      # remove if not required
             }
 
         except Exception as e:
@@ -110,7 +110,7 @@ class RobotMain(object):
             return {"error": str(e)}
 
         finally:
-            # двигатель можно «отпустить», чтобы не висел в OP‑Enable
+            # The motor can be released so it does not stay in OP-Enable
             # self._motor.shutdown()
             self.alive = False
-            # сброс callback‑ов, как раньше
+            # Reset callbacks as before

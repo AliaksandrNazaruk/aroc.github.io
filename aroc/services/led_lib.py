@@ -15,12 +15,12 @@ def send_to_arduino(command):
         response = requests.post(url, headers=headers, json=data, verify=False, timeout=2)
         response.raise_for_status()
         response_data = response.json()
-        print("Ответ API:", response_data)
+        print("API response:", response_data)
         return response_data
     except requests.exceptions.RequestException as e:
-        print("Ошибка при выполнении POST-запроса:", e)
+        print("Error performing POST request:", e)
         return False
     except ValueError:
-        print("Ошибка: некорректный JSON в ответе.")
+        print("Error: invalid JSON in response.")
         return False
     

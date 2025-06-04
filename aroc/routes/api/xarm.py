@@ -9,9 +9,9 @@ from contextlib import asynccontextmanager
 
 router = APIRouter(prefix="/api/xarm", tags=["xarm"])
 
-# Используем Lock вместо глобальной переменной
+# Use a Lock instead of a global variable
 command_lock = Lock()
-# Таймаут для выполнения команды (в секундах)
+# Timeout for command execution (in seconds)
 COMMAND_TIMEOUT = 30
 
 @router.get("/data")
@@ -22,7 +22,7 @@ async def get_xarm_data():
         "depth": 0
     }
     try:
-        # Проверяем, не занят ли манипулятор
+        # Check if the manipulator is busy
         if command_lock.locked():
             return {"message": "manipulator is busy"}
             
@@ -36,7 +36,7 @@ async def get_xarm_data():
 async def execute_xarm_command(data: Dict[str, Any]):
     """Execute XArm command"""
     try:
-        # Пытаемся получить блокировку с таймаутом
+        # Try to acquire the lock with a timeout
         if not await asyncio.wait_for(command_lock.acquire(), timeout=0.1):
             raise HTTPException(
                 status_code=409,
@@ -45,7 +45,7 @@ async def execute_xarm_command(data: Dict[str, Any]):
             
         try:
             loop = asyncio.get_running_loop()
-            # Добавляем таймаут для выполнения команды
+            # Add timeout for command execution
             result = await asyncio.wait_for(
                 loop.run_in_executor(None, xarm_command_operator, data),
                 timeout=COMMAND_TIMEOUT
