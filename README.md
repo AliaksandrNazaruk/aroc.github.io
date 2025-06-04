@@ -58,6 +58,21 @@ Returns detailed state information about the Igus motor.
 }
 ```
 
+### Get Current Position
+```http
+GET /api/igus/position
+```
+
+Returns only the current position of the motor.
+
+**Response:**
+```json
+{
+    "position": number,
+    "state": object
+}
+```
+
 ### Move to Position
 ```http
 POST /api/igus/move_to_position
@@ -79,9 +94,11 @@ Moves the motor to a specified position.
 ```json
 {
     "success": boolean,
-    "position": number,
-    "state": object,
-    "error": string
+    "result": {
+        "position": number
+    },
+    "error": string,
+    "state": object
 }
 ```
 
