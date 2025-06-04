@@ -1,0 +1,13 @@
+fastapi
+uvicorn
+websockets
+aiohttp
+requests
+pydantic
+numpy
+opencv-python
+pyrealsense2
+websocket-client
+pyserial
+pillow
+xarm
