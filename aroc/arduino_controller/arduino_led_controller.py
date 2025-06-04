@@ -4,17 +4,17 @@ import serial.tools.list_ports
 import time
 import threading
 
-# Глобальная блокировка для синхронизации работы с последовательным портом
+# Global lock for synchronizing access to the serial port
 serial_lock = threading.Lock()
 
-# Параметры подключения
+# Connection parameters
 BAUDRATE = 9600
-RECONNECT_DELAY = 1  # Задержка перед повторной попыткой подключения (в секундах)
+RECONNECT_DELAY = 1  # Delay before retrying connection (seconds)
 
 def get_device_port(name):
     """
-    Получение последовательного порта для устройства по имени.
-    Возвращает порт или None, если устройство не найдено.
+    Get serial port for a device by name.
+    Returns the port or None if the device is not found.
     """
     try:
         ports = serial.tools.list_ports.comports()
@@ -32,8 +32,8 @@ def get_device_port(name):
 
 def initialize_arduino():
     """
-    Инициализация последовательного порта. Закрывает старое соединение, если оно существует.
-    Повторные попытки соединения при неудаче.
+    Initialize the serial port. Closes old connection if it exists and
+    retries on failure.
     """
     try:
         port = get_device_port('arduino')
@@ -47,9 +47,7 @@ def initialize_arduino():
 
 
 def close_serial(ser):
-    """
-    Закрытие текущего соединения с последовательным портом.
-    """
+    """Close the current serial connection."""
     try:
         if ser and ser.is_open:
             ser.close()
@@ -59,8 +57,8 @@ def close_serial(ser):
 
 def send_command(command):
     """
-    Отправляет команду на Arduino через последовательный порт.
-    Открывает и закрывает порт каждый раз при отправке команды.
+    Send a command to Arduino over the serial port.
+    Opens and closes the port every time a command is sent.
     """
     serial_conn = initialize_arduino()
     if not serial_conn or not serial_conn.is_open:
@@ -68,7 +66,7 @@ def send_command(command):
     try:
         with serial_lock:
             serial_conn.write(f"{command}\n".encode())
-            time.sleep(0.25)  # Даем Arduino время обработать
+            time.sleep(0.25)  # Give Arduino time to process
             response = serial_conn.readline().decode().strip()
             return {"status": "success", "response": response}
     except serial.SerialException as e:

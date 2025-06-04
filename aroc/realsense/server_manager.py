@@ -7,33 +7,33 @@ import os
 logger = logging.getLogger("manager")
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s: %(message)s")
 
-# Команда для запуска серверного процесса.
-# Используем sys.executable, чтобы запускать с тем же интерпретатором,
-# и формируем путь к файлу server.py (он должен находиться в той же директории).
+# Command to launch the server process.
+# Uses sys.executable so the same interpreter is used,
+# forming the path to server.py which should be in the same directory.
 SERVER_PATH = os.path.join(os.path.dirname(__file__), "server.py")
 SERVER_CMD = [sys.executable, SERVER_PATH]
 
-RESTART_DELAY = 5  # задержка перед перезапуском (в секундах)
+RESTART_DELAY = 5  # delay before restart (seconds)
 
 async def run_server():
     """
-    Запускает серверный процесс как подпроцесс, выводит его stdout и stderr.
-    Если процесс завершается, возвращает его код.
+    Launch the server process as a subprocess and log its stdout/stderr.
+    Returns the exit code when the process ends.
     """
-    logger.info("Запуск серверного процесса...")
+    logger.info("Starting server process...")
     proc = await asyncio.create_subprocess_exec(
         *SERVER_CMD,
         stdout=asyncio.subprocess.PIPE,
         stderr=asyncio.subprocess.PIPE
     )
-    # Задачи для чтения stdout и stderr
+    # Tasks to read stdout and stderr
     stdout_task = asyncio.create_task(read_stream(proc.stdout, "STDOUT"))
     stderr_task = asyncio.create_task(read_stream(proc.stderr, "STDERR"))
     try:
         returncode = await proc.wait()
-        logger.error(f"Сервер завершился с кодом {returncode}")
+        logger.error(f"Server exited with code {returncode}")
     except Exception as e:
-        logger.error(f"Ошибка серверного процесса: {e}")
+        logger.error(f"Server process error: {e}")
         returncode = -1
     finally:
         stdout_task.cancel()
@@ -42,7 +42,7 @@ async def run_server():
 
 async def read_stream(stream, label):
     """
-    Читает и логирует строки из потока (stdout или stderr) серверного процесса.
+    Read and log lines from the server process stream (stdout or stderr).
     """
     while True:
         line = await stream.readline()
@@ -52,28 +52,28 @@ async def read_stream(stream, label):
 
 async def run_manager():
     """
-    Запускает серверный процесс в цикле. Если сервер завершился,
-    ждёт RESTART_DELAY секунд и запускает его снова.
+    Run the server process in a loop. If it exits,
+    wait RESTART_DELAY seconds and start it again.
     """
     while True:
         code = await run_server()
-        logger.info(f"Перезапуск сервера через {RESTART_DELAY} секунд...")
+        logger.info(f"Restarting server in {RESTART_DELAY} seconds...")
         await asyncio.sleep(RESTART_DELAY)
 
 def shutdown():
-    logger.info("Остановка менеджера...")
+    logger.info("Stopping manager...")
     for task in asyncio.all_tasks():
         task.cancel()
 
 if __name__ == "__main__":
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
-    # Добавляем обработчики сигналов для корректного завершения
+    # Register signal handlers for graceful shutdown
     for sig in (signal.SIGINT, signal.SIGTERM):
         loop.add_signal_handler(sig, shutdown)
     try:
         loop.run_until_complete(run_manager())
     except asyncio.CancelledError:
-        logger.info("Менеджер остановлен.")
+        logger.info("Manager stopped.")
     finally:
         loop.close()

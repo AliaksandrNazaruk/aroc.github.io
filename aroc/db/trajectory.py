@@ -5,7 +5,7 @@ import json
 DB_PATH = "database.db"
 
 def init_trajectory_table():
-    """Создаёт таблицу trajectory, если не существует, и одну дефолтную запись."""
+    """Create the trajectory table if it does not exist and insert a default row."""
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
     c.execute("""
@@ -27,7 +27,7 @@ def init_trajectory_table():
     conn.close()
 
 def get_trajectory():
-    """Возвращает конфиг траектории как dict."""
+    """Return the trajectory config as a dict."""
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
     c.execute("SELECT data FROM trajectory WHERE id = 1")
@@ -39,7 +39,7 @@ def get_trajectory():
         return None
 
 def save_trajectory(config: dict):
-    """Обновляет или создаёт запись траектории."""
+    """Update or create the trajectory record."""
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
     config_json = json.dumps(config, ensure_ascii=False)
