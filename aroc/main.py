@@ -15,7 +15,7 @@ async def lifespan(app: FastAPI):
     from core.state import xarm_client
     from core.state import igus_client
     from core.state import init_igus_motor
-    # Инициализируем клиент
+    # Clients initialization
     await xarm_client.__aenter__()
     await igus_client.__aenter__()
         
