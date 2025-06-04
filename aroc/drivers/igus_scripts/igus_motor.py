@@ -2,6 +2,7 @@ import threading
 import queue
 import time
 from typing import Callable, Any, Optional, Dict
+from core.logger import server_logger
 
 from drivers.igus_scripts.igus_modbus_driver import (
     init_socket, close, init, set_homing, move, set_reset_faults,
@@ -95,6 +96,7 @@ class IgusMotor:
                     self._last_error = str(e)
                     self._connected = False
                     self._active = False
+                server_logger.log_event('error', f'IgusMotor worker error: {e}')
                 self._reconnect()
                 if cmd.result_queue:
                     cmd.result_queue.put((False, e))
