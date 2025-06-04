@@ -5,7 +5,7 @@ from datetime import datetime
 import math
 requests.packages.urllib3.disable_warnings()
 # import services.igus_lib as igus_lib
-from core.configuration import symovo_car_ip, symovo_car_number
+from core.connection_config import symovo_car_ip, symovo_car_number
 def get_job_from_name(list,name):
     for job in list:
         if name == job['name']:
@@ -255,10 +255,15 @@ class AgvClient:
             jobs = self.get_jobs()
             nearest_station = self.find_nearest_station()
             current_station = None
-            if nearest_station['distance']<0.05:
+
+            # If we successfully determined the nearest station and it is
+            # essentially the same as the requested one (within 5 cm), we can
+            # skip creating a new job.
+            if nearest_station and nearest_station.get("distance", float("inf")) < 0.05:
                 current_station = nearest_station
+
             if current_station is not None:
-                if (current_station['name'])==name:
+                if current_station.get("name") == name:
                     return True
             # if reconfig:
             #     igus_lib.go_to_position(0, 4000, reconfig, True)

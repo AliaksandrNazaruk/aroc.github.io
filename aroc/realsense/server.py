@@ -7,6 +7,14 @@ import json
 import cv2
 import numpy as np
 
+from core.connection_config import (
+    realsense_color_host,
+    realsense_color_port,
+    realsense_depth_host,
+    realsense_depth_port,
+)
+from core.robot_params import camera_fps
+
 from camera import init_realsense, process_depth_frame_with_data
 from ffmpeg_utils import start_ffmpeg, start_depth_ffmpeg
 from connection_manager import ConnectionManager
@@ -38,7 +46,7 @@ async def depth_handler(websocket, path):
     finally:
         await depth_manager.unregister(websocket)
 
-async def capture_frames_task(pipeline, color_ffmpeg, fps=15):
+async def capture_frames_task(pipeline, color_ffmpeg, fps=camera_fps):
     frame_interval = 1.0 / fps
     loop = asyncio.get_event_loop()
     while True:
@@ -110,8 +118,14 @@ async def main():
 
     try:
         # Запуск WebSocket серверов
-        color_server = await websockets.serve(color_handler, "0.0.0.0", 9998, ping_interval=5, ping_timeout=5)
-        # depth_server = await websockets.serve(depth_handler, "0.0.0.0", 9999, ping_interval=5, ping_timeout=5)
+        color_server = await websockets.serve(
+            color_handler,
+            realsense_color_host,
+            realsense_color_port,
+            ping_interval=5,
+            ping_timeout=5,
+        )
+        # depth_server = await websockets.serve(depth_handler, realsense_depth_host, realsense_depth_port, ping_interval=5, ping_timeout=5)
     except Exception as e:
         logger.error(f"Ошибка запуска WebSocket серверов: {e}")
         return

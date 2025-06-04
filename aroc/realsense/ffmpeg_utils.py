@@ -1,9 +1,11 @@
 import asyncio
 import logging
 
+from core.robot_params import camera_width, camera_height, camera_fps
+
 logger = logging.getLogger("ffmpeg_utils")
 
-async def start_ffmpeg(width=640, height=480, fps=15):
+async def start_ffmpeg(width=camera_width, height=camera_height, fps=camera_fps):
     cmd = [
         'ffmpeg',
         '-f', 'rawvideo',
@@ -27,7 +29,7 @@ async def start_ffmpeg(width=640, height=480, fps=15):
                                                  stderr=asyncio.subprocess.PIPE)
     return proc
 
-async def start_depth_ffmpeg(width=640, height=480, fps=15):
+async def start_depth_ffmpeg(width=camera_width, height=camera_height, fps=camera_fps):
     cmd = [
         'ffmpeg',
         '-f', 'rawvideo',

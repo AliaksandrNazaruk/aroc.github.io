@@ -3,8 +3,12 @@ import aiohttp
 import asyncio
 from typing import List, Dict, Any
 
+from core.connection_config import web_server_ip, web_server_port
+
 class XarmClient:
-    def __init__(self, base_url: str = "http://localhost:8000"):
+    def __init__(self, base_url: str | None = None):
+        if base_url is None:
+            base_url = f"http://{web_server_ip}:{web_server_port}"
         self.base_url = base_url
         self._session = None
 
@@ -37,13 +41,19 @@ class XarmClient:
             print(e)
 
 
-    async def go_to_position(self,positions: List[str], angle_speed=20):
+    async def go_to_position(self, positions: List[str], angle_speed=20):
         try:
-            return await self.execute_command("move_to_position", 
-                                                positions=positions, 
-                                                angle_speed=angle_speed)
+            return await self.execute_command(
+                "move_to_position",
+                positions=positions,
+                angle_speed=angle_speed,
+            )
         except Exception as e:
-            print
+            # The previous implementation attempted to print the exception but
+            # omitted the message, effectively swallowing the error.  Log it so
+            # that the caller can inspect what went wrong.
+            print(e)
+            return None
 
 
 import aiohttp
@@ -52,7 +62,9 @@ from typing import Dict, Any
 
 
 class IgusClient:
-    def __init__(self, base_url: str = "http://localhost:8000"):
+    def __init__(self, base_url: str | None = None):
+        if base_url is None:
+            base_url = f"http://{web_server_ip}:{web_server_port}"
         self.base_url = base_url
         self._session: aiohttp.ClientSession | None = None
 
