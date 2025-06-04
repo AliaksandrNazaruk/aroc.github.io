@@ -8,6 +8,7 @@ This document provides comprehensive documentation for the Robot Control Server 
 - [Igus Motor API](#igus-motor-api)
 - [Symovo AGV API](#symovo-agv-api)
 - [XArm API](#xarm-api)
+- [System API](#system-api)
 - [Error Handling](#error-handling)
 
 ## Base URL
@@ -298,6 +299,62 @@ Executes a command on the XArm robot.
 - 408: Command execution timed out
 - 400: Invalid command
 - 500: Internal server error
+
+## System API
+
+### Get System Status
+```http
+GET /api/system/status
+```
+
+Returns high level information about the robot system.
+
+**Response:**
+```json
+{
+    "symovo_online": boolean,
+    "igus_connected": boolean
+}
+```
+
+### Move to Product
+```http
+POST /api/system/move_to_product
+```
+
+Moves the entire robot system to the specified product location. The AGV drives
+to the coordinates, the lift moves to the given position, and the manipulator
+executes the provided pose sequence.
+
+**Request Body:**
+```json
+{
+    "product_id": "string",
+    "location": {
+        "x": number,
+        "y": number,
+        "theta": number,
+        "map_id": "string"
+    },
+    "lift_position": number,
+    "manipulator_coords": {
+        "x": number,
+        "y": number,
+        "z": number
+    },
+    "angle_speed": number
+}
+```
+
+**Response:**
+```json
+{
+    "status": "ok",
+    "agv_result": object,
+    "lift_result": object,
+    "manipulator_result": object
+}
+```
 
 ## Error Handling
 
