@@ -124,9 +124,12 @@ class RobotMain(object):
                     code = self.gripper.activate()
                     # if not self._check_code(code, 'set_suction_cup'):
                     if code == [1, 8, 0, 1, 0, 0, 41, 1, 0, 0, 220]:
-                        return 'success'
+                        result = 'success'
                     else:
-                        return 'error'
+                        result = 'error'
+                    if result != 'success':
+                        raise RuntimeError("take failed")
+                    return result
                         
                 except:
                     print("suction_error")
@@ -140,6 +143,7 @@ class RobotMain(object):
         if hasattr(self._arm, 'release_count_changed_callback'):
             self._arm.release_count_changed_callback(self._count_changed_callback)
 
+        raise RuntimeError("take failed")
 
 # arm = XArmAPI('192.168.1.220', baud_checkset=False)
 # robot_main = RobotMain(arm)

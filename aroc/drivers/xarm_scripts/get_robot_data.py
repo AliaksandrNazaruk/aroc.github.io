@@ -93,8 +93,8 @@ class RobotMain(object):
         self._arm.release_state_changed_callback(self._state_changed_callback)
         if hasattr(self._arm, 'release_count_changed_callback'):
             self._arm.release_count_changed_callback(self._count_changed_callback)
-        
-        return 'error'
+
+        raise RuntimeError("get_robot_data failed")
 
 
 # arm = XArmAPI('192.168.1.220', baud_checkset=False)

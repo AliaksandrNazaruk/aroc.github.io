@@ -131,5 +131,9 @@ class RobotMain(object):
         self._arm.release_state_changed_callback(self._state_changed_callback)
         if hasattr(self._arm, 'release_count_changed_callback'):
             self._arm.release_count_changed_callback(self._count_changed_callback)
+
+        if not result:
+            raise RuntimeError("move_tool_position failed")
+
         return result
 

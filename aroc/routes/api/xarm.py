@@ -28,46 +28,61 @@ async def get_xarm_data():
             
         loop = asyncio.get_running_loop()
         result = await loop.run_in_executor(None, xarm_command_operator, data)
-        return result['result']
+
+        if not result.get("success"):
+            return {"message": result.get("error", "unknown error")}
+
+        return result["result"]
     except Exception as e:
         return {"message": str(e)}
 
 @router.post("/command")
 async def execute_xarm_command(data: Dict[str, Any]):
     """Execute XArm command"""
+        
+    lock_acquired = False
     try:
-        # Try to acquire the lock with a timeout
-        if not await asyncio.wait_for(command_lock.acquire(), timeout=0.1):
+        try:
+            await asyncio.wait_for(command_lock.acquire(), timeout=0.1)
+            lock_acquired = True
+        except asyncio.TimeoutError:
             raise HTTPException(
                 status_code=409,
-                detail="Manipulator is busy with another command"
+                detail="Manipulator is busy with another command",
             )
-            
+
         try:
             loop = asyncio.get_running_loop()
             # Add timeout for command execution
             result = await asyncio.wait_for(
                 loop.run_in_executor(None, xarm_command_operator, data),
-                timeout=COMMAND_TIMEOUT
+                timeout=COMMAND_TIMEOUT,
             )
-            
+
             if isinstance(result, Exception):
                 raise HTTPException(
                     status_code=400,
-                    detail=f'XARM Operator: {type(result).__name__}: {result}'
+                    detail=f"XARM Operator: {type(result).__name__}: {result}",
                 )
-            return result
-            
+
+            if not result.get("success"):
+                raise HTTPException(
+                    status_code=result.get("error_code", 400),
+                    detail=result.get("error", "Unknown error"),
+                )
+
+            return result["result"]
+
         except asyncio.TimeoutError:
             raise HTTPException(
                 status_code=408,
-                detail="Command execution timed out"
+                detail="Command execution timed out",
             )
         finally:
-            command_lock.release()
-            
+            if lock_acquired:
+                command_lock.release()
+
     except Exception as e:
         if isinstance(e, HTTPException):
             raise e
         raise HTTPException(status_code=500, detail=str(e))
-        
