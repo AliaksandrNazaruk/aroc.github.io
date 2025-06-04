@@ -37,13 +37,19 @@ class XarmClient:
             print(e)
 
 
-    async def go_to_position(self,positions: List[str], angle_speed=20):
+    async def go_to_position(self, positions: List[str], angle_speed=20):
         try:
-            return await self.execute_command("move_to_position", 
-                                                positions=positions, 
-                                                angle_speed=angle_speed)
+            return await self.execute_command(
+                "move_to_position",
+                positions=positions,
+                angle_speed=angle_speed,
+            )
         except Exception as e:
-            print
+            # The previous implementation attempted to print the exception but
+            # omitted the message, effectively swallowing the error.  Log it so
+            # that the caller can inspect what went wrong.
+            print(e)
+            return None
 
 
 import aiohttp
