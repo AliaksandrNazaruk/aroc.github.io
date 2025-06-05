@@ -342,7 +342,7 @@ executes the provided pose sequence.
         "y": number,
         "z": number
     },
-    "angle_speed": number
+    "speed": number
 }
 ```
 
