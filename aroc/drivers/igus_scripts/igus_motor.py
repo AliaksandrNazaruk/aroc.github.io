@@ -43,7 +43,7 @@ class IgusMotor:
         else:
             raise Exception(f"Failed to connect to {ip_address}:{port}: {self._last_error}")
 
-    def _start_connection(self, retries=3, retry_delay=2):
+    def _start_connection(self, retries=3, retry_delay=5):
         for attempt in range(retries):
             try:
                 init_socket(self.ip_address, self.port)
@@ -194,7 +194,7 @@ class IgusMotor:
 if __name__ == "__main__":
     from core.connection_config import igus_motor_ip, igus_motor_port
     motor = IgusMotor(igus_motor_ip, igus_motor_port)
-    position = 5000
+    position = 35000
     try:
         if motor.is_homed():
             motor.move_to_position(position , velocity=5000, acceleration=1000)

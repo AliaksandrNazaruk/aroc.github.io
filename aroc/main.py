@@ -2,11 +2,13 @@ from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from contextlib import asynccontextmanager
 
-from routes.api import igus, symovo, xarm, system
-from routes.websocket import ws
+
 from routes.misc import misc
 from core.configuration import igus_motor_ip, igus_motor_port
 from core.connection_config import web_server_host, web_server_port
+
+import time 
+# time.sleep(15)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -24,6 +26,9 @@ async def lifespan(app: FastAPI):
     init_trajectory_table()
     init_regals_table()
     symovo_car.start_polling(interval=10)
+
+    from routes.api import igus, symovo, xarm, system
+    from routes.websocket import ws
     app.include_router(igus.router)
     app.include_router(symovo.router)
     app.include_router(xarm.router)

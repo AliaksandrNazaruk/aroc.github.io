@@ -165,7 +165,6 @@ def set_reset_faults():
         send_command(MotorCommandBuilder.shutdown())  # или просто controlword = 0x06 (shutdown)
         print('Waiting for reset faults... (attempt %d)' % (attempt + 1))
         time.sleep(DELAY)
-        full_state_machine_recover()
 
     status = send_command(get_array("status"))
     if checkers.is_no_error(status):
@@ -180,9 +179,11 @@ def full_state_machine_recover():
     send_command(get_array("switch_on"))
     while not checkers.is_switched_on(send_command(get_array("status"))):
         time.sleep(0.1)
+    send_command(MotorCommandBuilder.get_mode(1))
+    time.sleep(0.1)
     send_command(get_array("enable_operation"))
     while not checkers.is_operation_enabled(send_command(get_array("status"))):
-        time.sleep(0.1)
+        time.sleep(1)
 
     # Проверить homing
     if not get_homing_status():
@@ -229,19 +230,19 @@ def set_homing():
             return True
 
         send_command(MotorCommandBuilder.get_mode(6))
-        time.sleep(0.1)
+        time.sleep(1)
         send_command(MotorCommandBuilder.feed_const_1())
-        time.sleep(0.05)
+        time.sleep(1)
         send_command(MotorCommandBuilder.feed_const_2())
-        time.sleep(0.05)
+        time.sleep(1)
         send_command(MotorCommandBuilder.homing_speed_switch())
-        time.sleep(0.05)
+        time.sleep(1)
         send_command(MotorCommandBuilder.homing_speed_zero())
-        time.sleep(0.05)
+        time.sleep(1)
         send_command(MotorCommandBuilder.homing_acc())
-        time.sleep(0.05)
+        time.sleep(1)
         send_command(MotorCommandBuilder.start_homing())
-        time.sleep(0.2)
+        time.sleep(1)
 
         last_positions = [None, None, None, None]
         while True:
@@ -268,9 +269,7 @@ def set_homing():
 def move(velocity, acceleration, target_position):
     try:
         set_reset_faults()
-        send_command(MotorCommandBuilder.get_mode(1))
-        time.sleep(0.2)
-
+        full_state_machine_recover()
         send_command(MotorCommandBuilder.profile_velocity_command(velocity))
         time.sleep(0.05)
         send_command(MotorCommandBuilder.profile_accel_command(acceleration))
@@ -302,6 +301,7 @@ def move(velocity, acceleration, target_position):
 
         # === Новый кусок: убедиться, что бит 12 снят ===
         # Если бит 12 "Operation Mode Specific" установлен, делаем Enable Operation до сброса
+        set_shutdown()
         for i in range(3):  # не более 3 попыток
             status = send_command(get_array("status"))
             sw = status[-2] + (status[-1] << 8)

@@ -1,0 +1,30 @@
+2025-05-30 08:31:15,317 - ERROR - IgusMotor worker error: Move failed: Move failed: Motor is in FAULT state
+2025-05-30 08:32:39,500 - ERROR - IgusMotor worker error: Move failed: Move failed: Position stuck
+2025-05-30 08:33:06,246 - ERROR - IgusMotor worker error: Move failed: Move failed: Position stuck
+2025-05-30 09:42:41,384 - ERROR - IgusMotor worker error: Move failed: Move failed: Motor is in FAULT state
+2025-05-30 09:53:17,584 - ERROR - IgusMotor worker error: Move failed: Move failed: Position stuck
+2025-05-30 09:53:27,325 - ERROR - IgusMotor worker error: Move failed: Move failed: Position stuck
+2025-05-30 09:56:48,449 - ERROR - IgusMotor worker error: Move failed: Move failed: Position stuck
+2025-05-30 09:57:01,185 - ERROR - IgusMotor worker error: Move failed: Move failed: Position stuck
+2025-05-30 10:02:30,794 - ERROR - IgusMotor worker error: Move failed: Move failed: Position stuck
+2025-05-30 10:04:42,161 - ERROR - IgusMotor worker error: Move failed: Move failed: Position stuck
+2025-05-30 10:04:47,749 - ERROR - move_to_position failed: Move failed: Move failed: Position stuck
+2025-05-30 10:05:16,243 - ERROR - IgusMotor worker error: Move failed: Move failed: Position stuck
+2025-05-30 10:06:16,428 - ERROR - IgusMotor worker error: Move failed: Move failed: Position stuck
+2025-05-30 10:06:57,496 - ERROR - IgusMotor worker error: Move failed: Move failed: Position stuck
+2025-05-30 10:12:18,054 - ERROR - IgusMotor worker error: Move failed: Move failed: Position stuck
+2025-05-30 10:17:16,541 - ERROR - IgusMotor worker error: Move failed: Move failed: Position stuck
+2025-05-30 10:21:23,943 - ERROR - IgusMotor worker error: Move failed: Move failed: Position stuck
+2025-05-30 10:22:39,492 - ERROR - IgusMotor worker error: Move failed: Move failed: Position stuck
+2025-05-30 10:33:05,978 - ERROR - IgusMotor worker error: Move failed: Move failed: Motor is in FAULT state
+2025-05-30 10:41:37,531 - ERROR - IgusMotor worker error: Move failed: Move failed: Position stuck
+2025-05-30 10:41:42,892 - ERROR - move_to_position failed: Move failed: Move failed: Position stuck
+2025-05-30 10:43:03,368 - ERROR - IgusMotor worker error: Move failed: Move failed: Position stuck
+2025-05-30 10:45:46,868 - ERROR - IgusMotor worker error: Move failed: Move failed: Position stuck
+2025-05-30 10:45:52,211 - ERROR - move_to_position failed: Move failed: Move failed: Position stuck
+2025-05-30 10:45:56,739 - ERROR - IgusMotor worker error: Move failed: Move failed: Position stuck
+2025-05-30 10:46:10,513 - ERROR - IgusMotor worker error: Move failed: Move failed: Position stuck
+2025-05-30 10:46:19,288 - ERROR - IgusMotor worker error: Move failed: Move failed: Position stuck
+2025-05-30 10:46:33,059 - ERROR - IgusMotor worker error: Move failed: Move failed: Position stuck
+2025-05-30 10:46:38,407 - ERROR - move_to_position failed: Move failed: Move failed: Position stuck
+2025-05-30 10:46:40,918 - ERROR - IgusMotor worker error: Move failed: Move failed: Motor is in FAULT state
