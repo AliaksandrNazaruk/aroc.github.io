@@ -1,0 +1,7 @@
+string method
+string endpoint
+string json
+---
+string response
+bool success
+string error
