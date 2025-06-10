@@ -69,6 +69,9 @@ async def reference_motor():
 @router.post("/fault_reset", response_model=MotorCommandResponse)
 async def reset_faults():
     response = await _execute_motor_command(igus_motor.fault_reset)
+    # convert bool result to structured form for schema compliance
+    if isinstance(response.get("result"), bool):
+        response["result"] = {"fault_reset": response["result"]}
     return response
 
 
