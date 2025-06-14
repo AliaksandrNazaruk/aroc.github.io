@@ -106,7 +106,8 @@ def send_command(data: bytes) -> bytes:
 def _get_statusword():
     status_bytes = send_command(get_array("status"))
     sw = status_bytes[-2] + (status_bytes[-1] << 8)
-    print(f"[DEBUG] Statusword=0x{sw:x}")
+    from core.logger import server_logger
+    server_logger.log_event("debug", f"Statusword=0x{sw:x}")
     return sw
 
 def get_statusword(status: List[int]) -> Optional[int]:
@@ -128,7 +129,8 @@ def set_shutdown():
         status = send_command(get_array("status"))
         if checkers.is_shutdown(status):
             return
-        print(f'Waiting for shutdown... statusword={hex(get_statusword(status))}')
+        from core.logger import server_logger
+        server_logger.log_event("debug", f"Waiting for shutdown... statusword={hex(get_statusword(status))}")
         time.sleep(0.3)
     raise Exception(f"Shutdown failed, last statusword={hex(get_statusword(status))}")
 
@@ -140,7 +142,8 @@ def set_switch_on():
     status = []
     while not checkers.is_switched_on(status):
         status = send_command(get_array("status"))
-        print('Waiting for switch-on...')
+        from core.logger import server_logger
+        server_logger.log_event("debug", 'Waiting for switch-on...')
         time.sleep(1)
         timer = timer + 1
         if timer > 2:
@@ -163,7 +166,8 @@ def set_reset_faults():
         time.sleep(0.1)
         # 2. Сбросить бит 7 (нормальный controlword, например shutdown)
         send_command(MotorCommandBuilder.shutdown())  # или просто controlword = 0x06 (shutdown)
-        print('Waiting for reset faults... (attempt %d)' % (attempt + 1))
+        from core.logger import server_logger
+        server_logger.log_event("debug", f"Waiting for reset faults... (attempt {attempt + 1})")
         time.sleep(DELAY)
 
     status = send_command(get_array("status"))
@@ -196,7 +200,8 @@ def set_enable_operation():
     status = []
     while not checkers.is_operation_enabled(status):
         status = send_command(get_array("status"))
-        print('Waiting for enabling operation...')
+        from core.logger import server_logger
+        server_logger.log_event("debug", 'Waiting for enabling operation...')
         time.sleep(1)
         timer = timer + 1
         if timer > 2:
@@ -306,7 +311,8 @@ def move(velocity, acceleration, target_position):
             status = send_command(get_array("status"))
             sw = status[-2] + (status[-1] << 8)
             if sw & 0x1000:  # бит 12 выставлен
-                print("[DEBUG] Operation Mode Specific активен, отправляю Enable Operation...")
+                from core.logger import server_logger
+                server_logger.log_event("debug", "Operation Mode Specific активен, отправляю Enable Operation...")
                 send_command(get_array("enable_operation"))
                 time.sleep(0.1)
             else:

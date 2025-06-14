@@ -59,13 +59,13 @@ async def move_motor(params: MoveParams):
         # expose position separately for backward compatibility
         response["result"] = {"position": igus_motor._position}
         return response
-    except:
-        print(f"[Demo] Ошибка: ")
+    except Exception as e:
+        server_logger.log_event("error", f"move_to_position failed: {e}")
         # if e.args[0] == 'Drive reports FAULT bit set' or e.args[0] == 'Timeout waiting for state OPERATION_ENABLED':
         try:
             igus_motor._controller.initialize()
-        except:
-            print("error")
+        except Exception as init_err:
+            server_logger.log_event("error", f"Motor re-init failed: {init_err}")
     return
 
     # expose position separately for backward compatibility
@@ -78,13 +78,13 @@ async def reference_motor():
         response = await _execute_motor_command(igus_motor.home)
         response["result"] = {"homing": igus_motor._homed}
         return response
-    except:
-        print(f"[Demo] Ошибка: ")
+    except Exception as e:
+        server_logger.log_event("error", f"reference_motor failed: {e}")
         # if e.args[0] == 'Drive reports FAULT bit set' or e.args[0] == 'Timeout waiting for state OPERATION_ENABLED':
         try:
             igus_motor._controller.initialize()
-        except:
-            print("error")
+        except Exception as init_err:
+            server_logger.log_event("error", f"Motor re-init failed: {init_err}")
     return
 
 @router.post("/fault_reset", response_model=MotorCommandResponse)

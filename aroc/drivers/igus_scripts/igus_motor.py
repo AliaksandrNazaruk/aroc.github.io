@@ -195,18 +195,19 @@ if __name__ == "__main__":
     motor.home()
 
     while True:
+        from core.logger import server_logger
         try:
             motor.move_to_position(0)
-            print(motor.get_status())
+            server_logger.log_event("info", str(motor.get_status()))
             motor.move_to_position(10000)
-            print(motor.get_status())
-        except:
-            print(f"[Demo] Ошибка: ")
+            server_logger.log_event("info", str(motor.get_status()))
+        except Exception as e:
+            server_logger.log_event("error", f"Move demo failed: {e}")
             # if e.args[0] == 'Drive reports FAULT bit set' or e.args[0] == 'Timeout waiting for state OPERATION_ENABLED':
             try:
-                print(motor.get_status())
+                server_logger.log_event("debug", str(motor.get_status()))
                 motor._controller.initialize()
                 if not motor._controller.is_homed:
                     motor.home()
-            except:
-                print("error")
+            except Exception as init_err:
+                server_logger.log_event("error", f"Init after fail failed: {init_err}")

@@ -264,7 +264,8 @@ if __name__ == "__main__":
     import sys
 
     if len(sys.argv) != 2:
-        print("Ошибка: скрипт ожидает ровно 2 аргумента.")
+        from core.logger import server_logger
+        server_logger.log_event("error", "Ошибка: скрипт ожидает ровно 2 аргумента.")
         sys.exit(1)
     
     try:
@@ -275,7 +276,8 @@ if __name__ == "__main__":
             correct_position = False
 
     except ValueError:
-        print("Ошибка: все аргументы должны быть числами (float).")
+        from core.logger import server_logger
+        server_logger.log_event("error", "Ошибка: все аргументы должны быть числами (float).")
         sys.exit(1)
     stream_depth_frames(correct_position)
     sys.exit(0)

@@ -103,11 +103,17 @@ class RobotMain(object):
 
     @staticmethod
     def pprint(*args, **kwargs):
+        from core.logger import server_logger
         try:
             stack_tuple = traceback.extract_stack(limit=2)[0]
-            print('[{}][{}] {}'.format(time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())), stack_tuple[1], ' '.join(map(str, args))))
-        except:
-            print(*args, **kwargs)
+            msg = '[{}][{}] {}'.format(
+                time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())),
+                stack_tuple[1],
+                ' '.join(map(str, args))
+            )
+        except Exception:
+            msg = ' '.join(map(str, args))
+        server_logger.log_event("info", msg)
 
     @property
     def arm(self):
@@ -155,8 +161,9 @@ class RobotMain(object):
                     code = self._arm.set_suction_cup(True, wait=True, delay_sec=0)
                     if not self._check_code(code, 'set_suction_cup'):
                         return
-                except:
-                    print("suction_error")
+                except Exception as e:
+                    from core.logger import server_logger
+                    server_logger.log_event("error", f"suction_error: {e}")
 
                 code = self._arm.set_tool_position(z=-z-50,y=-y,x=-x, radius=0, speed=self._tcp_speed, mvacc=self._tcp_acc, relative=True, wait=True)
                 if not self._check_code(code, 'set_position'):
@@ -186,15 +193,18 @@ correct_j6 = 0
 if __name__ == '__main__':
     try:
         if len(sys.argv) != 6:
-            print("Error: the script expects exactly 5 arguments.")
+            from core.logger import server_logger
+            server_logger.log_event("error", "Error: the script expects exactly 5 arguments.")
             sys.exit(1)
         try:
             x, y, z, w, h = map(float, sys.argv[1:6])
         except ValueError:
-            print("Error: all arguments must be numbers (float).")
+            from core.logger import server_logger
+            server_logger.log_event("error", "Error: all arguments must be numbers (float).")
             sys.exit(1)
 
-        print(f"x = {x}, y = {y}, z = {z},w = {y}, h = {z}")
+        from core.logger import server_logger
+        server_logger.log_event("info", f"x = {x}, y = {y}, z = {z},w = {y}, h = {z}")
         if w > box_w and w < box_h:
             rotate = True
         if h > box_h and h < box_w:

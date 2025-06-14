@@ -2,6 +2,7 @@
 import aiohttp
 import asyncio
 from typing import List, Dict, Any
+from core.logger import server_logger
 
 from core.connection_config import web_server_ip, web_server_port
 
@@ -38,7 +39,7 @@ class XarmClient:
         try:
             return await self.execute_command("get_current_position")
         except Exception as e:
-            print(e)
+            server_logger.log_event("error", str(e))
 
 
     async def go_to_position(self, positions: List[str], angle_speed=20):
@@ -52,7 +53,7 @@ class XarmClient:
             # The previous implementation attempted to print the exception but
             # omitted the message, effectively swallowing the error.  Log it so
             # that the caller can inspect what went wrong.
-            print(e)
+            server_logger.log_event("error", str(e))
             return None
 
     async def move_tool_position(self, x: float, y: float, z: float, angle_speed=20):
@@ -66,7 +67,7 @@ class XarmClient:
                 angle_speed=angle_speed,
             )
         except Exception as e:
-            print(e)
+            server_logger.log_event("error", str(e))
             return None
 
 

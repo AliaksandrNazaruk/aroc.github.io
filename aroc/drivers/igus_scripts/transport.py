@@ -229,7 +229,8 @@ class ModbusTcpTransport:
             except Exception as e:
                 _LOGGER.warning(f"[heartbeat] Exception in heartbeat: {e}")
             self._heartbeat_stop_event.wait(self._heartbeat_interval or 2.0)
-        print("[heartbeat] Gracefully exited heartbeat loop")
+        from core.logger import server_logger
+        server_logger.log_event("info", "[heartbeat] Gracefully exited heartbeat loop")
 
     def _default_heartbeat_pdu(self) -> bytes:
         """PDU для опроса statusword, сформированный через PacketBuilder."""

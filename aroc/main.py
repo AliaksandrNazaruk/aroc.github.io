@@ -56,4 +56,5 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 
 if __name__ == "__main__":
     import uvicorn
+    server_logger.log_event("info", "Starting uvicorn server")
     uvicorn.run("main:app", host=web_server_host, port=web_server_port, reload=True)
