@@ -56,7 +56,10 @@ class ServerLogger:
                     'message': text.strip()
                 }
                 self.parent.log_history.append(log_entry)
-                
+
+                # Log the message as info
+                self.parent.logger.info(text.strip())
+
                 # Write to original stream
                 if self.stream_type == 'stdout':
                     self.parent.original_stdout.write(text)
@@ -102,5 +105,12 @@ class ServerLogger:
         """Clear log history"""
         self.log_history.clear()
 
-# Create global logger instance
-server_logger = ServerLogger()
+server_logger: Optional[ServerLogger] = None
+
+
+def init_server_logger(max_log_entries: int = 10000) -> ServerLogger:
+    """Initialize global server logger if not already created."""
+    global server_logger
+    if server_logger is None:
+        server_logger = ServerLogger(max_log_entries)
+    return server_logger
