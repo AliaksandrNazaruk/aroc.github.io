@@ -65,7 +65,7 @@ class AgvClient:
 
     def _get_v1_maps_url(self):
         """Generate URL for v1 maps list."""
-        return f"https://{self.ip}/v1/maps"
+        return f"https://{self.ip}/v0/map"
     
     def _get_stations_url(self):
         """Generate URL for station list requests."""

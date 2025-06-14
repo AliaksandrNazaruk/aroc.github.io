@@ -47,24 +47,45 @@ async def _execute_motor_command(func: Callable, *args, **kwargs) -> Dict[str, A
 
 @router.post("/move_to_position", response_model=MotorCommandResponse)
 async def move_motor(params: MoveParams):
-    response = await _execute_motor_command(
-        igus_motor.move_to_position,
-        target_position=params.position,
-        velocity=params.velocity,
-        acceleration=params.acceleration,
-        blocking=params.wait,
-    )
+
+    try:
+        response = await _execute_motor_command(
+            igus_motor.move_to_position,
+            target_position=params.position,
+            velocity=params.velocity,
+            acceleration=params.acceleration,
+            blocking=params.wait,
+        )
+        # expose position separately for backward compatibility
+        response["result"] = {"position": igus_motor._position}
+        return response
+    except:
+        print(f"[Demo] Ошибка: ")
+        # if e.args[0] == 'Drive reports FAULT bit set' or e.args[0] == 'Timeout waiting for state OPERATION_ENABLED':
+        try:
+            igus_motor._controller.initialize()
+        except:
+            print("error")
+    return
+
     # expose position separately for backward compatibility
     response["result"] = {"position": igus_motor._position}
     return response
 
 @router.post("/reference", response_model=MotorCommandResponse)
 async def reference_motor():
-    response = await _execute_motor_command(igus_motor.home)
-    response["result"] = {"homing": igus_motor._homed}
-    return response
-
-
+    try:
+        response = await _execute_motor_command(igus_motor.home)
+        response["result"] = {"homing": igus_motor._homed}
+        return response
+    except:
+        print(f"[Demo] Ошибка: ")
+        # if e.args[0] == 'Drive reports FAULT bit set' or e.args[0] == 'Timeout waiting for state OPERATION_ENABLED':
+        try:
+            igus_motor._controller.initialize()
+        except:
+            print("error")
+    return
 
 @router.post("/fault_reset", response_model=MotorCommandResponse)
 async def reset_faults():
@@ -77,25 +98,34 @@ async def reset_faults():
 
 @router.get("/data", response_model=Dict[str, Any])
 async def get_motor_data():
+    status = igus_motor.get_status()
     return {
-        "status": igus_motor.get_status(),
-        "error": igus_motor.get_error(),
-        "connected": igus_motor.is_connected(),
-        "position": igus_motor._position,
+        "status": status['statusword'],
+        "homing": status['homed'],
+        "error": status['error_state'],
+        "connected": status['connected'],
+        "position": status['position'],
     }
 
 @router.get("/state", response_model=Dict[str, Any])
 async def get_motor_state():
+    status = igus_motor.get_status()
     return {
-        "status": igus_motor.get_status(),
-        "homing": igus_motor._homed,
-        "error": igus_motor.get_error(),
-        "connected": igus_motor.is_connected(),
-        "position": igus_motor._position,
+        "status": status['statusword'],
+        "homing": status['homed'],
+        "error": status['error_state'],
+        "connected": status['connected'],
+        "position": status['position'],
     }
 
 
 @router.get("/position", response_model=Dict[str, Any])
 async def get_position():
-    """Return current motor position only."""
-    return {"position": igus_motor.get_position(), "state": igus_motor.get_status()}
+    status = igus_motor.get_status()
+    return {
+        "status": status['statusword'],
+        "homing": status['homed'],
+        "error": status['error_state'],
+        "connected": status['connected'],
+        "position": status['position'],
+    }

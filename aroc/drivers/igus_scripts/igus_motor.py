@@ -2,12 +2,14 @@ import threading
 import queue
 import time
 from typing import Callable, Any, Optional, Dict
-from core.logger import server_logger
+import sys
+import os
+sys.path.insert(0, os.path.abspath(os.path.dirname(__file__) + "/../.."))
 
-from drivers.igus_scripts.igus_modbus_driver import (
-    init_socket, close, init, set_homing, move, set_reset_faults,
-    _driver, get_current_position, get_homing_status,_get_statusword
-)
+from drivers.igus_scripts.transport import ModbusTcpTransport
+from drivers.igus_scripts.protocol import DryveSDO
+from drivers.igus_scripts.machine import DriveStateMachine
+from drivers.igus_scripts.controller import DryveController
 
 class IgusCommand:
     def __init__(self, func: Callable, args: tuple = (), kwargs: dict = None, result_queue: Optional[queue.Queue] = None):
@@ -17,53 +19,66 @@ class IgusCommand:
         self.result_queue = result_queue
 
 class IgusMotor:
-    """Singleton-подход: один объект — одно соединение с мотором."""
+    """
+    Singleton-объект для dryve D1: работает через новый стек, но с совместимым API.
+    """
 
     def __init__(self, ip_address: str, port: int = 502):
         self.ip_address = ip_address
         self.port = port
 
+        self._transport = None
+        self._sdo = None
+        self._fsm = None
+        self._controller = None
         self._cmd_queue = queue.Queue()
         self._worker_thread = threading.Thread(target=self._worker, daemon=True)
         self._status_lock = threading.Lock()
         self._stop_event = threading.Event()
 
-        # Внутренние состояния
+        # Внутренние состояния (кэш, не опрашивается лишний раз!)
         self._connected = False
         self._active = False
-        self._position = 0
+        self._position = 0.0
         self._homed = False
         self._last_error = None
+        self._statusword = 0
         self._last_status = None
-        self._driver = None
-        # Подключение и запуск потока
+        self._controller = None
+
         self._start_connection()
         if self._connected:
             self._worker_thread.start()
         else:
             raise Exception(f"Failed to connect to {ip_address}:{port}: {self._last_error}")
 
-    def _start_connection(self, retries=3, retry_delay=5):
-        for attempt in range(retries):
+    def _start_connection(self, retries=3, retry_delay=3.0):
+        while True:
             try:
-                init_socket(self.ip_address, self.port)
-                init()
+                # ------> ВАЖНО! Не with, а явное создание!
+                self._transport = ModbusTcpTransport(self.ip_address, self.port)
+                self._transport.connect()
+                self._sdo = DryveSDO(self._transport)
+                self._fsm = DriveStateMachine(self._sdo)
+                self._controller = DryveController(self._sdo, self._fsm)
+                self._controller.initialize()
                 with self._status_lock:
-                    self._homed = get_homing_status()
-                    self._position = get_current_position()
                     self._connected = True
                     self._last_error = None
-                    self._active = False
-                    self._driver = _driver
                 return
             except Exception as e:
                 with self._status_lock:
                     self._connected = False
                     self._last_error = str(e)
                     self._active = False
+                try:
+                    if self._transport:
+                        self._transport.close()
+                except Exception:
+                    pass
                 time.sleep(retry_delay)
-        # Если не получилось — бросаем ошибку
         raise Exception(f"Failed to connect to {self.ip_address}:{self.port}: {self._last_error}")
+
 
 
     def _worker(self):
@@ -72,23 +87,9 @@ class IgusMotor:
                 cmd: IgusCommand = self._cmd_queue.get(timeout=0.1)
             except queue.Empty:
                 continue
-
             try:
                 result = cmd.func(*cmd.args, **cmd.kwargs)
-                with self._status_lock:
-                    # Обновление состояния
-                    if cmd.func == set_homing:
-                        self._homed = True
-                        self._active = True
-                        self._position = _driver.position
-                    elif cmd.func == move:
-                        # move(velocity, accel, target_position)
-                        if len(cmd.args) > 2:
-                            self._position = cmd.args[2]
-                        self._active = False
-                    elif cmd.func == set_reset_faults:
-                        self._active = False
-                    self._last_error = None
+                self._last_error = None
                 if cmd.result_queue:
                     cmd.result_queue.put((True, result))
             except Exception as e:
@@ -96,80 +97,76 @@ class IgusMotor:
                     self._last_error = str(e)
                     self._connected = False
                     self._active = False
-                server_logger.log_event('error', f'IgusMotor worker error: {e}')
-                self._reconnect()
+                # server_logger.log_event('error', f'IgusMotor worker error: {e}')
+                
+                # self._reconnect()
                 if cmd.result_queue:
                     cmd.result_queue.put((False, e))
 
     def _reconnect(self):
         try:
-            close()
+            if self._transport:
+                self._transport.close()
         except Exception:
             pass
         time.sleep(1)
         self._start_connection()
 
     def shutdown(self):
-        """Корректно завершить работу мотора и worker."""
         self._stop_event.set()
         self._worker_thread.join(timeout=2)
         try:
-            close()
+            if self._transport:
+                self._transport.close()
         except Exception:
             pass
         with self._status_lock:
             self._connected = False
             self._active = False
 
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.shutdown()
+
     # ------------- PUBLIC API -------------
-    def fault_reset(self, blocking=True):
-        return self._enqueue(set_reset_faults, (), blocking=blocking)
-
     def home(self, blocking=True):
-        return self._enqueue(set_homing, (), blocking=blocking)
+        result = self._enqueue(self._controller.home, (), blocking=blocking)
+        return result
 
-    def move_to_position(self, target_position, velocity=5000, acceleration=1000, blocking=True):
+    def move_to_position(self, target_position, velocity=2000, acceleration=2000, blocking=True):
         with self._status_lock:
-            if not self._homed:
+            if not self._controller.is_homed:
                 raise Exception("Movement impossible: Homing required first.")
-        return self._enqueue(move, (velocity, acceleration, target_position), blocking=blocking)
+        result = self._enqueue(
+            self._controller.move_to_position,(target_position, velocity, acceleration),blocking=blocking,)
+        return result
+
+    def fault_reset(self, blocking=True):
+        result = self._enqueue(self._controller.initialize(), (), blocking=blocking)
+        return result
 
     # --- State getters ---
-    def get_position(self):
-        with self._status_lock:
-            self._position = _driver.position
-            return self._position
 
-    def is_homed(self):
-        with self._status_lock:
-            return self._homed
 
-    def is_active(self):
-        with self._status_lock:
-            return self._active
-        
     def get_statusword(self):
-        return _get_statusword()
-    
-    def get_error(self):
         with self._status_lock:
-            return self._last_error
-
-    def is_connected(self):
-        with self._status_lock:
-            return self._connected
+            return self._controller.get_statusword()
 
     def get_status(self) -> Dict[str, Any]:
+        self._controller.get_error()
         with self._status_lock:
             return {
-                "position": self._position,
-                "homed": self._homed,
-                "active": self._active,
-                "last_error": self._last_error,
-                "connected": self._connected,
+                "position": self._controller.position,
+                "homed": self._controller.is_homed,
+                "active": self._controller.is_motion,
+                "error_state": self._controller.error_state,
+                "connected": True,
+                "statusword": self._controller.statusword,
             }
 
-    # --- Helpers ---
+
     def _enqueue(self, func, args, blocking=True):
         result_queue = queue.Queue(maxsize=1) if blocking else None
         cmd = IgusCommand(func, args, {}, result_queue)
@@ -182,26 +179,34 @@ class IgusMotor:
                 raise result
         return None
 
-    # context manager support
-    def __enter__(self):
-        return self
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        self.shutdown()
-
-
 # === Пример использования ===
 if __name__ == "__main__":
-    from core.connection_config import igus_motor_ip, igus_motor_port
-    motor = IgusMotor(igus_motor_ip, igus_motor_port)
-    position = 35000
-    try:
-        if motor.is_homed():
-            motor.move_to_position(position , velocity=5000, acceleration=1000)
-        else:
-            motor.home()
-        print("[Demo] Переместился в "+str(position))
-    except Exception as e:
-        print(f"[Demo] Ошибка: {e}")
-    finally:
-        motor.shutdown()
+    import logging
+
+    logging.basicConfig(
+        level=logging.DEBUG,  # или INFO для менее подробных логов
+        format="%(asctime)s [%(levelname)s] %(name)s: %(message)s"
+    )
+    motor = IgusMotor("127.0.0.1", 502)
+    position = 30000
+        # motor.get_statusword()
+        
+    # motor.fault_reset()
+    motor.home()
+
+    while True:
+        try:
+            motor.move_to_position(0)
+            print(motor.get_status())
+            motor.move_to_position(10000)
+            print(motor.get_status())
+        except:
+            print(f"[Demo] Ошибка: ")
+            # if e.args[0] == 'Drive reports FAULT bit set' or e.args[0] == 'Timeout waiting for state OPERATION_ENABLED':
+            try:
+                print(motor.get_status())
+                motor._controller.initialize()
+                if not motor._controller.is_homed:
+                    motor.home()
+            except:
+                print("error")

@@ -121,3 +121,8 @@ class IgusClient:
         url = f"{self.base_url}/api/igus/state"
         async with self._session.get(url) as response:
             return await response.json()
+
+    async def get_position(self) -> Dict[str, Any]:
+        url = f"{self.base_url}/api/igus/position"
+        async with self._session.get(url) as response:
+            return await response.json()

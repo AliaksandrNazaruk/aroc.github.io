@@ -130,21 +130,13 @@ def start_job_with_name(item):
 async def transport_position(stop_event, speed=default_speed):
     try:
         async with igus_client as _igus_client:
-            igus_result = await _igus_client.move_to_position(position=20000,velocity=speed * 100,acceleration=speed * 100,wait=False)
+            igus_result = await _igus_client.move_to_position(position=20000,velocity=speed * 100,acceleration=speed * 100,wait=True)
             if igus_result.get('success', False):
                 async with xarm_client as client:
                     current_pose = await client.get_current_position()
                     if current_pose[0] != "TRANSPORT_STEP_2":
-                        await client.go_to_position(
-                            [xarm_positions.poses["TRANSPORT_STEP_1"], xarm_positions.poses["TRANSPORT_STEP_2"]],
-                            angle_speed=speed
-                        )
-                    igus_result2 = await _igus_client.move_to_position(
-                        position=0,
-                        velocity=speed * 100,
-                        acceleration=speed * 100,
-                        wait=False
-                    )
+                        await client.go_to_position([xarm_positions.poses["TRANSPORT_STEP_1"], xarm_positions.poses["TRANSPORT_STEP_2"]],angle_speed=speed)
+                    igus_result2 = await _igus_client.move_to_position(position=0,velocity=speed * 100,acceleration=speed * 100,wait=True)
                     if igus_result2.get('success', False):
                         return True
         raise Exception("Transport position failed")
@@ -153,53 +145,59 @@ async def transport_position(stop_event, speed=default_speed):
         return False
 
 async def goToBox1(stop_event, speed = default_speed):
+    first_pos = 40000
+    second_pos = 30000
     try:
-        pose = None
         async with igus_client as _igus_client:
-            igus_result = await _igus_client.move_to_position(40000,(speed * 100),(speed * 100),True)
-            async with xarm_client as _xarm_client:
-                current_pose = await _xarm_client.get_current_position()
-                if current_pose[0] != "TRANSPORT_STEP_2":
-                    pose = xarm_positions.poses["TRANSPORT_STEP_1"]
+            igus_result = await _igus_client.move_to_position(first_pos,(speed * 100),(speed * 100),True)
+            igus_position = await igus_client.get_position()
+            igus_position = igus_position.get('position')
+            result = abs(igus_position - first_pos)
+            if  result < 250:
+                async with xarm_client as _xarm_client:
+                    current_pose = await _xarm_client.get_current_position()
+                    igus_result = await _igus_client.move_to_position(second_pos,(speed * 100)/3,(speed * 100)/2,False)
 
-                igus_result = await _igus_client.move_to_position(30000,(speed * 100)/3,(speed * 100)/2,False)
+                    if not igus_result.get('success', False):
+                        logger.error(f"Igus movement failed: {igus_result.get('error')}")
+                        return False
+                                                            
+                    robot_result = await _xarm_client.go_to_position([xarm_positions.poses["TRANSPORT_STEP_1"], xarm_positions.poses["BOX_STEP_1"], xarm_positions.poses["BOX_1_STEP_2"]],angle_speed=speed)
 
-                if not igus_result.get('success', False):
-                    logger.error(f"Igus movement failed: {igus_result.get('error')}")
-                    return False
-
-                robot_result = await _xarm_client.go_to_position([pose, xarm_positions.poses["BOX_STEP_1"], xarm_positions.poses["BOX_1_STEP_2"]],angle_speed=speed)
-                if not robot_result.get('success', False):
-                    logger.error(f"Robot movement failed: {robot_result.get('error')}")
-                    return False
+                    if not robot_result.get('success', False):
+                        logger.error(f"Robot movement failed: {robot_result.get('error')}")
+                        return False
+                    
+                    return True
                 
-                return True
     except Exception as e:
         logger.error(f"Go to box 1 error: {e}")
         return e
 
 async def goToBox2(stop_event, speed = default_speed):
+    first_pos = 40000
+    second_pos = 30000
     try:
-        pose = None
         async with igus_client as _igus_client:
-            igus_result = await _igus_client.move_to_position(40000,(speed * 100),(speed * 100),True)
-            async with xarm_client as _xarm_client:
-                current_pose = await _xarm_client.get_current_position()
-                if current_pose[0] == 'TRANSPORT_STEP_2':
-                    pose = xarm_positions.poses["TRANSPORT_STEP_1"]
+            igus_result = await _igus_client.move_to_position(first_pos,(speed * 100),(speed * 100),True)
+            igus_position = await igus_client.get_position()
+            igus_position = igus_position.get('position')
+            result = abs(igus_position - first_pos)
+            if  result < 250:
+                async with xarm_client as _xarm_client:
+                    current_pose = await _xarm_client.get_current_position()
+                    igus_result = await _igus_client.move_to_position(30000,(speed * 100)/3,(speed * 100)/2,False)
 
-                igus_result = await _igus_client.move_to_position(30000,(speed * 100)/3,(speed * 100)/2,False)
+                    if not igus_result.get('success', False):
+                        logger.error(f"Igus movement failed: {igus_result.get('error')}")
+                        return False
 
-                if not igus_result.get('success', False):
-                    logger.error(f"Igus movement failed: {igus_result.get('error')}")
-                    return False
-
-                robot_result = await _xarm_client.go_to_position([pose, xarm_positions.poses["BOX_STEP_1"], xarm_positions.poses["BOX_2_STEP_2"]],angle_speed=speed)
-                if not robot_result.get('success', False):
-                    logger.error(f"Robot movement failed: {robot_result.get('error')}")
-                    return False
-                
-                return True
+                    robot_result = await _xarm_client.go_to_position([xarm_positions.poses["TRANSPORT_STEP_1"], xarm_positions.poses["BOX_STEP_1"], xarm_positions.poses["BOX_2_STEP_2"]],angle_speed=speed)
+                    if not robot_result.get('success', False):
+                        logger.error(f"Robot movement failed: {robot_result.get('error')}")
+                        return False
+                    
+                    return True
     except Exception as e:
         logger.error(f"Go to box 1 error: {e}")
         return e

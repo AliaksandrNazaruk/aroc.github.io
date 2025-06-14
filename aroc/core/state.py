@@ -24,7 +24,16 @@ igus_motor: Optional[IgusMotor] = None
 
 def init_igus_motor(ip, port):
     global igus_motor
-    igus_motor = IgusMotor(ip, port)
+    
+    try:
+        igus_motor = IgusMotor(ip, port)
+    except:
+        # print(f"[Demo] Ошибка: ")
+        # if e.args[0] == 'Drive reports FAULT bit set' or e.args[0] == 'Timeout waiting for state OPERATION_ENABLED':
+        try:
+            igus_motor._controller.initialize()
+        except:
+            print("error")
     return
 
 symovo_car.start_polling(interval=10)
