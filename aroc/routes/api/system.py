@@ -3,6 +3,7 @@ from pydantic import BaseModel
 from typing import Dict, Any, Optional
 
 from core.state import symovo_car, igus_motor, xarm_client
+from core.logger import server_logger
 
 router = APIRouter(prefix="/api/system", tags=["system"])
 
@@ -28,13 +29,17 @@ class SystemMoveRequest(BaseModel):
 
 @router.get("/status", response_model=Dict[str, Any])
 def get_system_status():
-    return {
+    server_logger.log_event("info", "GET /api/system/status")
+    data = {
         "symovo_online": symovo_car.online,
         "igus_connected": igus_motor.is_connected() if igus_motor else False,
     }
+    server_logger.log_event("info", "System status fetched")
+    return data
 
 @router.post("/move_to_product", response_model=Dict[str, Any])
 async def move_to_product(req: SystemMoveRequest):
+    server_logger.log_event("info", f"POST /api/system/move_to_product {req}")
     agv_result = symovo_car.move_to(
         req.location.x,
         req.location.y,
@@ -49,6 +54,7 @@ async def move_to_product(req: SystemMoveRequest):
         try:
             lift_result = igus_motor.move_to_position(req.lift_position)
         except Exception as e:
+            server_logger.log_event("error", f"Lift move failed: {e}")
             raise HTTPException(status_code=500, detail=f"Lift move failed: {e}")
 
     manip_result = None
@@ -63,7 +69,10 @@ async def move_to_product(req: SystemMoveRequest):
             if not manip_result.get("success", False):
                 raise Exception(manip_result.get("error", "Unknown error"))
         except Exception as e:
+            server_logger.log_event("error", f"Manipulator move failed: {e}")
             raise HTTPException(status_code=500, detail=f"Manipulator move failed: {e}")
+
+    server_logger.log_event("info", "System move_to_product executed")
 
     return {
         "status": "ok",

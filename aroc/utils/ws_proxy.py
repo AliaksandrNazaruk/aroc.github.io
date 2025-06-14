@@ -40,6 +40,8 @@ async def proxy_websocket(ws: WebSocket, target_url: str):
     Proxy WebSocket connection to target URL
     """
     await ws.accept()
+    from core.logger import server_logger
+    server_logger.log_event("info", f"Proxy WS connect -> {target_url}")
     try:
         async with websockets.connect(target_url) as target_ws:
             await asyncio.gather(
@@ -52,3 +54,4 @@ async def proxy_websocket(ws: WebSocket, target_url: str):
     finally:
         if not ws.client_state.name == "DISCONNECTED":
             await ws.close()
+        server_logger.log_event("info", f"Proxy WS disconnect -> {target_url}")

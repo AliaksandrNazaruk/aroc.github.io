@@ -4,6 +4,7 @@ from fastapi import APIRouter, HTTPException, Query
 from typing import Dict, Any
 from pydantic import BaseModel
 from core.state import symovo_car
+from core.logger import server_logger
 
 
 class MoveToPoseRequest(BaseModel):
@@ -18,9 +19,9 @@ router = APIRouter(prefix="/api/symovo_car", tags=["symovo"])
 @router.get("/data")
 def get_system_data():
     """Get current Symovo car state"""
+    server_logger.log_event("info", "GET /api/symovo_car/data")
     last_update_str = str(symovo_car.last_update_time) if symovo_car.last_update_time else None
-
-    return {
+    data = {
         "online": symovo_car.online,
         "last_update_time": last_update_str,
         "id": symovo_car.id,
@@ -49,16 +50,23 @@ def get_system_data():
         "attributes": symovo_car.attributes,
         "planned_path_edges": symovo_car.planned_path_edges
     }
+    server_logger.log_event("info", "Symovo data fetched")
+    return data
 
 @router.get("/jobs")
 def get_symovo_car_jobs():
     """Get current Symovo car jobs"""
-    return symovo_car.get_jobs()
+    server_logger.log_event("info", "GET /api/symovo_car/jobs")
+    jobs = symovo_car.get_jobs()
+    server_logger.log_event("info", "Symovo jobs fetched")
+    return jobs
 
 @router.get("/new_job")
 def create_new_job(name: str = Query(...)):
     """Start a new job with given position name"""
+    server_logger.log_event("info", f"GET /api/symovo_car/new_job {name}")
     result = symovo_car.go_to_position(name, True, True)
+    server_logger.log_event("info", f"Symovo new job started: {name}")
     return {
         "status": "ok",
         "message": f"Going to position {name}",
@@ -69,34 +77,42 @@ def create_new_job(name: str = Query(...)):
 @router.get("/maps")
 def get_maps():
     """Return available maps."""
+    server_logger.log_event("info", "GET /api/symovo_car/maps")
     maps = symovo_car.get_maps()
     if maps is None:
         raise HTTPException(status_code=500, detail="Failed to get maps")
+    server_logger.log_event("info", "Symovo maps fetched")
     return maps
 
 
 @router.post("/go_to_pose")
 def go_to_pose(req: MoveToPoseRequest):
     """Send AGV to arbitrary pose."""
+    server_logger.log_event("info", f"POST /api/symovo_car/go_to_pose {req}")
     result = symovo_car.move_to(req.x, req.y, req.theta, req.map_id, req.max_speed)
     if result is None:
         raise HTTPException(status_code=500, detail="Failed to send move command")
+    server_logger.log_event("info", "Symovo go_to_pose executed")
     return {"status": "ok", "result": result}
 
 
 @router.post("/check_pose")
 def check_pose(req: MoveToPoseRequest):
     """Check if a pose is reachable."""
+    server_logger.log_event("info", f"POST /api/symovo_car/check_pose {req}")
     result = symovo_car.check_reachability(req.x, req.y, req.theta, req.map_id)
     if result is None:
         raise HTTPException(status_code=500, detail="Failed to check pose")
+    server_logger.log_event("info", "Symovo pose checked")
     return result
 
 
 @router.get("/task_status")
 def task_status(task_id: str = Query(...)):
     """Return status of a task by ID."""
+    server_logger.log_event("info", f"GET /api/symovo_car/task_status {task_id}")
     result = symovo_car.get_task_status(task_id)
     if result is None:
         raise HTTPException(status_code=500, detail="Failed to get task status")
+    server_logger.log_event("info", "Symovo task status fetched")
     return result
