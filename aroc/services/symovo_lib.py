@@ -3,6 +3,7 @@ import time
 import threading
 from datetime import datetime
 import math
+from core.logger import server_logger
 requests.packages.urllib3.disable_warnings()
 # import services.igus_lib as igus_lib
 from core.connection_config import symovo_car_ip, symovo_car_number
@@ -119,11 +120,11 @@ class AgvClient:
 
         except requests.exceptions.RequestException as e:
             # Error during request
-            print(f"Error polling AGV: {e}")
+            server_logger.log_event("error", f"Error polling AGV: {e}")
             self.online = False
         except ValueError:
             # Malformed JSON response
-            print("Error: invalid JSON in response.")
+            server_logger.log_event("error", "Error: invalid JSON in response.")
             self.online = False
 
     def start_polling(self, interval=5):
@@ -157,12 +158,12 @@ class AgvClient:
             return data
         except requests.exceptions.RequestException as e:
             # Error during request
-            print(f"Error polling AGV: {e}")
+            server_logger.log_event("error", f"Error polling AGV: {e}")
             self.online = False
             return False
         except ValueError:
             # Malformed JSON
-            print("Error: invalid JSON in response.")
+            server_logger.log_event("error", "Error: invalid JSON in response.")
             self.online = False
             return False
 
@@ -172,7 +173,7 @@ class AgvClient:
         }
         job_id = job.get('id') 
         if not job_id:
-            print("Error: job does not contain 'id'.")
+            server_logger.log_event("error", "Error: job does not contain 'id'.")
             return False
         url = self._get_transport_url()
         put_create_transport_from_job = f"{url}/create_from_job/{job_id}"
@@ -183,10 +184,10 @@ class AgvClient:
             data = response.json()
             return data
         except requests.exceptions.RequestException as e:
-            print("Error performing PUT request:", e)
+            server_logger.log_event("error", f"Error performing PUT request: {e}")
             return False
         except ValueError:
-            print("Error: invalid JSON in response.")
+            server_logger.log_event("error", "Error: invalid JSON in response.")
             return False
 
     def get_robot_position(self):
@@ -199,12 +200,12 @@ class AgvClient:
             return data["pose"]["x"], data["pose"]["y"]
         except requests.exceptions.RequestException as e:
             # Error during request
-            print(f"Error polling AGV: {e}")
+            server_logger.log_event("error", f"Error polling AGV: {e}")
             self.online = False
             return False
         except ValueError:
             # Malformed JSON
-            print("Error: invalid JSON in response.")
+            server_logger.log_event("error", "Error: invalid JSON in response.")
             self.online = False
             return False
 
@@ -216,12 +217,12 @@ class AgvClient:
             return response.json()
         except requests.exceptions.RequestException as e:
             # Error during request
-            print(f"Error polling AGV: {e}")
+            server_logger.log_event("error", f"Error polling AGV: {e}")
             self.online = False
             return False
         except ValueError:
             # Malformed JSON
-            print("Error: invalid JSON in response.")
+            server_logger.log_event("error", "Error: invalid JSON in response.")
             self.online = False
             return False
 
@@ -233,10 +234,10 @@ class AgvClient:
             response.raise_for_status()
             return response.json()
         except requests.exceptions.RequestException as e:
-            print(f"Error getting maps: {e}")
+            server_logger.log_event("error", f"Error getting maps: {e}")
             return None
         except ValueError:
-            print("Error: invalid JSON in response.")
+            server_logger.log_event("error", "Error: invalid JSON in response.")
             return None
 
     def move_to(self, x: float, y: float, theta: float = 0, map_id: str | None = None, max_speed: float | None = None):
@@ -253,10 +254,10 @@ class AgvClient:
             response.raise_for_status()
             return response.json()
         except requests.exceptions.RequestException as e:
-            print(f"Error moving AGV: {e}")
+            server_logger.log_event("error", f"Error moving AGV: {e}")
             return None
         except ValueError:
-            print("Error: invalid JSON in response.")
+            server_logger.log_event("error", "Error: invalid JSON in response.")
             return None
 
     def check_reachability(self, x: float, y: float, theta: float = 0, map_id: str | None = None):
@@ -270,10 +271,10 @@ class AgvClient:
             response.raise_for_status()
             return response.json()
         except requests.exceptions.RequestException as e:
-            print(f"Error checking reachability: {e}")
+            server_logger.log_event("error", f"Error checking reachability: {e}")
             return None
         except ValueError:
-            print("Error: invalid JSON in response.")
+            server_logger.log_event("error", "Error: invalid JSON in response.")
             return None
 
     def get_task_status(self, task_id: str):
@@ -284,10 +285,10 @@ class AgvClient:
             response.raise_for_status()
             return response.json()
         except requests.exceptions.RequestException as e:
-            print(f"Error getting task status: {e}")
+            server_logger.log_event("error", f"Error getting task status: {e}")
             return None
         except ValueError:
-            print("Error: invalid JSON in response.")
+            server_logger.log_event("error", "Error: invalid JSON in response.")
             return None
         
     def find_nearest_station(self):
@@ -356,4 +357,4 @@ class AgvClient:
 if __name__ == "__main__":
     client = AgvClient(ip=symovo_car_ip, robot_number=symovo_car_number)
     client.start_polling(interval=10)
-    print(client.go_to_position("Test",True,True))
+    server_logger.log_event("info", str(client.go_to_position("Test", True, True)))

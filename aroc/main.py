@@ -6,9 +6,13 @@ from contextlib import asynccontextmanager
 from routes.misc import misc
 from core.configuration import igus_motor_ip, igus_motor_port
 from core.connection_config import web_server_host, web_server_port
+from core.logger import init_server_logger, server_logger
 
-import time 
+import time
 # time.sleep(15)
+
+# Initialize logging
+init_server_logger()
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -36,7 +40,7 @@ async def lifespan(app: FastAPI):
     app.include_router(ws.router)
     app.include_router(misc.router)
 
-    print("Startup OK.")
+    server_logger.log_event("info", "Startup OK.")
     yield
 
     await xarm_client.__aexit__(None, None, None)
@@ -52,4 +56,5 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 
 if __name__ == "__main__":
     import uvicorn
+    server_logger.log_event("info", "Starting uvicorn server")
     uvicorn.run("main:app", host=web_server_host, port=web_server_port, reload=True)

@@ -18,7 +18,8 @@ async def forward_messages_fastapi_to_websockets(src_ws: WebSocket, dst_ws: webs
             else:
                 break
     except Exception as e:
-        print("Error (fastapi->websockets):", e)
+        from core.logger import server_logger
+        server_logger.log_event("error", f"fastapi->websockets: {e}")
 
 async def forward_messages_websockets_to_fastapi(src_ws: websockets.WebSocketClientProtocol, dst_ws: WebSocket):
     """
@@ -31,7 +32,8 @@ async def forward_messages_websockets_to_fastapi(src_ws: websockets.WebSocketCli
             else:
                 await dst_ws.send_bytes(msg)
     except Exception as e:
-        print("Error (websockets->fastapi):", e)
+        from core.logger import server_logger
+        server_logger.log_event("error", f"websockets->fastapi: {e}")
 
 async def proxy_websocket(ws: WebSocket, target_url: str):
     """
@@ -45,7 +47,8 @@ async def proxy_websocket(ws: WebSocket, target_url: str):
                 forward_messages_websockets_to_fastapi(target_ws, ws)
             )
     except Exception as e:
-        print(f"WebSocket proxy error: {e}")
+        from core.logger import server_logger
+        server_logger.log_event("error", f"WebSocket proxy error: {e}")
     finally:
         if not ws.client_state.name == "DISCONNECTED":
             await ws.close()

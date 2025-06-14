@@ -137,7 +137,8 @@ def mouse_callback(event, x, y, flags, param):
         start_flag = False
         # Получаем глубину по координатам (y, x)
         depth_value = int(current_depth_image[y, x])
-        print(f"Depth at pixel ({x}, {y}): {depth_value} mm")
+        from core.logger import server_logger
+        server_logger.log_event("info", f"Depth at pixel ({x}, {y}): {depth_value} mm")
 
         # Выделение объекта на основе глубины
         threshold = 10
@@ -163,8 +164,9 @@ def mouse_callback(event, x, y, flags, param):
                 center_x = x + w // 2
                 center_y = y + h // 2
                 center_coordinates = (center_x, center_y)
-                print(object_text)
-                print("Rec Center: "+ str(center_coordinates))
+                from core.logger import server_logger
+                server_logger.log_event("info", object_text)
+                server_logger.log_event("info", "Rec Center: "+ str(center_coordinates))
                 break
 start_flag = False
 async def stream_depth_frames(ws_url):
@@ -177,7 +179,8 @@ async def stream_depth_frames(ws_url):
     cv2.setMouseCallback(window_name, mouse_callback)
 
     async with websockets.connect(ws_url) as websocket:
-        print("Connected to WebSocket server...")
+        from core.logger import server_logger
+        server_logger.log_event("info", "Connected to WebSocket server...")
 
         while True:
             try:
@@ -220,7 +223,8 @@ async def stream_depth_frames(ws_url):
                             start_flag = True
 
                             delta_x_mm, delta_y_mm = calculate_camera_shift(320, 240, center_coordinates[0], center_coordinates[1], depth_image, 380.4253845214844, 380.4253845214844)
-                            print(f"Смещение камеры по X: {delta_x_mm:.2f} мм, по Y: {delta_y_mm:.2f} мм")
+                            from core.logger import server_logger
+                            server_logger.log_event("info", f"Смещение камеры по X: {delta_x_mm:.2f} мм, по Y: {delta_y_mm:.2f} мм")
                             script_path = '/home/boris/web_server/xarm/xarm_scripts/move_tool_position.py'
                             try: 
                                 args = [-delta_y_mm, delta_x_mm, 0]
@@ -248,10 +252,12 @@ async def stream_depth_frames(ws_url):
 
                 # Закрываем окно при нажатии клавиши "q"
                 if cv2.waitKey(1) & 0xFF == ord("q"):
-                    print("Streaming stopped by user.")
+                    from core.logger import server_logger
+                    server_logger.log_event("info", "Streaming stopped by user.")
                     break
             except Exception as e:
-                print(f"Error while receiving data: {e}")
+                from core.logger import server_logger
+                server_logger.log_event("error", f"Error while receiving data: {e}")
                 break
 
     # Закрываем окно OpenCV

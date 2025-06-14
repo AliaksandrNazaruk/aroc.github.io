@@ -80,11 +80,17 @@ class RobotMain(object):
 
     @staticmethod
     def pprint(*args, **kwargs):
+        from core.logger import server_logger
         try:
             stack_tuple = traceback.extract_stack(limit=2)[0]
-            print('[{}][{}] {}'.format(time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())), stack_tuple[1], ' '.join(map(str, args))))
-        except:
-            print(*args, **kwargs)
+            msg = '[{}][{}] {}'.format(
+                time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())),
+                stack_tuple[1],
+                ' '.join(map(str, args))
+            )
+        except Exception:
+            msg = ' '.join(map(str, args))
+        server_logger.log_event("info", msg)
 
     @property
     def arm(self):

@@ -148,6 +148,7 @@ if __name__ == "__main__":
             except:
                 try:
                     fsm.fault_reset()
-                except:
-                    print("error")
+                except Exception as e:
+                    from core.logger import server_logger
+                    server_logger.log_event("error", f"fault_reset failed: {e}")
 

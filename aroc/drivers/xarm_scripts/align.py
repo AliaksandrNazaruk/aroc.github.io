@@ -91,13 +91,16 @@ def process_frames():
                 ws.close()  # Закрываем соединение после получения 10 кадров
 
     def on_error(ws, error):
-        print(f"WebSocket error: {error}")
+        from core.logger import server_logger
+        server_logger.log_event("error", f"WebSocket error: {error}")
     
     def on_close(ws, close_status_code, close_msg):
-        print("WebSocket connection closed")
+        from core.logger import server_logger
+        server_logger.log_event("info", "WebSocket connection closed")
     
     def on_open(ws):
-        print("WebSocket connection opened")
+        from core.logger import server_logger
+        server_logger.log_event("info", "WebSocket connection opened")
     
     # Создание подключения WebSocket
     ws = websocket.WebSocketApp(
@@ -166,11 +169,17 @@ class RobotMain(object):
 
     @staticmethod
     def pprint(*args, **kwargs):
+        from core.logger import server_logger
         try:
             stack_tuple = traceback.extract_stack(limit=2)[0]
-            print('[{}][{}] {}'.format(time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())), stack_tuple[1], ' '.join(map(str, args))))
-        except:
-            print(*args, **kwargs)
+            msg = '[{}][{}] {}'.format(
+                time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())),
+                stack_tuple[1],
+                ' '.join(map(str, args))
+            )
+        except Exception:
+            msg = ' '.join(map(str, args))
+        server_logger.log_event("info", msg)
 
     @property
     def arm(self):
