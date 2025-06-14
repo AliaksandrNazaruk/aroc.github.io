@@ -42,6 +42,7 @@ async def lifespan(app: FastAPI):
 
     server_logger.log_event("info", "Startup OK.")
     yield
+    server_logger.log_event("info", "Shutdown initiated")
 
     await xarm_client.__aexit__(None, None, None)
     await igus_client.__aexit__(None, None, None)

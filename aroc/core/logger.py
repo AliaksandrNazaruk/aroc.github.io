@@ -36,6 +36,16 @@ class ServerLogger:
         self.logger.setLevel(logging.DEBUG)
         self.logger.addHandler(file_handler)
         self.logger.addHandler(console_handler)
+
+        # Integrate uvicorn loggers so all HTTP traffic gets captured
+        for name in ("uvicorn.access", "uvicorn.error"):  # noqa: B007 - loop var not used
+            uvicorn_logger = logging.getLogger(name)
+            uvicorn_logger.handlers = [file_handler, console_handler]
+            uvicorn_logger.setLevel(logging.INFO)
+            uvicorn_logger.propagate = False
+
+        # Capture Python warnings via logging module
+        logging.captureWarnings(True)
         
         # Redirect stdout and stderr
         sys.stdout = self.StreamLogger(self, 'stdout')

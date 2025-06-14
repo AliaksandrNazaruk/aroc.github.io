@@ -48,6 +48,8 @@ async def _execute_motor_command(func: Callable, *args, **kwargs) -> Dict[str, A
 @router.post("/move_to_position", response_model=MotorCommandResponse)
 async def move_motor(params: MoveParams):
 
+    server_logger.log_event("info", f"POST /api/igus/move_to_position {params}")
+
     try:
         response = await _execute_motor_command(
             igus_motor.move_to_position,
@@ -58,6 +60,7 @@ async def move_motor(params: MoveParams):
         )
         # expose position separately for backward compatibility
         response["result"] = {"position": igus_motor._position}
+        server_logger.log_event("info", "Igus move_to_position executed")
         return response
     except Exception as e:
         server_logger.log_event("error", f"move_to_position failed: {e}")
@@ -74,9 +77,11 @@ async def move_motor(params: MoveParams):
 
 @router.post("/reference", response_model=MotorCommandResponse)
 async def reference_motor():
+    server_logger.log_event("info", "POST /api/igus/reference")
     try:
         response = await _execute_motor_command(igus_motor.home)
         response["result"] = {"homing": igus_motor._homed}
+        server_logger.log_event("info", "Igus reference executed")
         return response
     except Exception as e:
         server_logger.log_event("error", f"reference_motor failed: {e}")
@@ -89,43 +94,54 @@ async def reference_motor():
 
 @router.post("/fault_reset", response_model=MotorCommandResponse)
 async def reset_faults():
+    server_logger.log_event("info", "POST /api/igus/fault_reset")
     response = await _execute_motor_command(igus_motor.fault_reset)
     # convert bool result to structured form for schema compliance
     if isinstance(response.get("result"), bool):
         response["result"] = {"fault_reset": response["result"]}
+    server_logger.log_event("info", "Igus fault_reset executed")
     return response
 
 
 @router.get("/data", response_model=Dict[str, Any])
 async def get_motor_data():
+    server_logger.log_event("info", "GET /api/igus/data")
     status = igus_motor.get_status()
-    return {
+    data = {
         "status": status['statusword'],
         "homing": status['homed'],
         "error": status['error_state'],
         "connected": status['connected'],
         "position": status['position'],
     }
+    server_logger.log_event("info", "Igus data fetched")
+    return data
 
 @router.get("/state", response_model=Dict[str, Any])
 async def get_motor_state():
+    server_logger.log_event("info", "GET /api/igus/state")
     status = igus_motor.get_status()
-    return {
+    data = {
         "status": status['statusword'],
         "homing": status['homed'],
         "error": status['error_state'],
         "connected": status['connected'],
         "position": status['position'],
     }
+    server_logger.log_event("info", "Igus state fetched")
+    return data
 
 
 @router.get("/position", response_model=Dict[str, Any])
 async def get_position():
+    server_logger.log_event("info", "GET /api/igus/position")
     status = igus_motor.get_status()
-    return {
+    data = {
         "status": status['statusword'],
         "homing": status['homed'],
         "error": status['error_state'],
         "connected": status['connected'],
         "position": status['position'],
     }
+    server_logger.log_event("info", "Igus position fetched")
+    return data

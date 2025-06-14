@@ -2,6 +2,8 @@
 
 from fastapi import APIRouter, HTTPException
 from typing import Dict, Any
+
+from core.logger import server_logger
 from drivers.xarm_scripts.xarm_command_operator import xarm_command_operator
 import asyncio
 from asyncio import Lock
@@ -17,6 +19,7 @@ COMMAND_TIMEOUT = 30
 @router.get("/data")
 async def get_xarm_data():
     """Get current XArm state"""
+    server_logger.log_event("info", "GET /api/xarm/data")
     data = {
         "command": "get_data",
         "depth": 0
@@ -30,16 +33,20 @@ async def get_xarm_data():
         result = await loop.run_in_executor(None, xarm_command_operator, data)
 
         if not result.get("success"):
+            server_logger.log_event("error", result.get("error", "unknown error"))
             return {"message": result.get("error", "unknown error")}
 
+        server_logger.log_event("info", "XArm data fetched")
         return result["result"]
     except Exception as e:
+        server_logger.log_event("error", f"get_xarm_data failed: {e}")
         return {"message": str(e)}
 
 @router.post("/command")
 async def execute_xarm_command(data: Dict[str, Any]):
     """Execute XArm command"""
-        
+    server_logger.log_event("info", f"POST /api/xarm/command {data}")
+
     lock_acquired = False
     try:
         try:
@@ -71,9 +78,11 @@ async def execute_xarm_command(data: Dict[str, Any]):
                     detail=result.get("error", "Unknown error"),
                 )
 
+            server_logger.log_event("info", "XArm command executed")
             return result["result"]
 
         except asyncio.TimeoutError:
+            server_logger.log_event("error", "XArm command timeout")
             raise HTTPException(
                 status_code=408,
                 detail="Command execution timed out",
@@ -83,6 +92,7 @@ async def execute_xarm_command(data: Dict[str, Any]):
                 command_lock.release()
 
     except Exception as e:
+        server_logger.log_event("error", f"execute_xarm_command failed: {e}")
         if isinstance(e, HTTPException):
             raise e
         raise HTTPException(status_code=500, detail=str(e))
