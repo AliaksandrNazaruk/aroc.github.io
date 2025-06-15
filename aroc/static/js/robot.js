@@ -43,7 +43,9 @@ window.robotServer = {
 
         if (!response.ok) {
           const msg = data.detail || data.error || 'Unknown error';
+
           showError(msg);
+
           throw new Error(msg);
         }
 
@@ -54,7 +56,9 @@ window.robotServer = {
         };
       } catch (error) {
         console.error('Ошибка при отправке команды:', error);
+
         showError(error.message);
+
         return { error: error.message };
       }
     }
@@ -125,4 +129,5 @@ window.robotServer = {
     }
     modal.querySelector('#error-modal-text').textContent = message;
   }
+
 
