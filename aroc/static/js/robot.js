@@ -40,18 +40,21 @@ window.robotServer = {
         });
   
         const data = await response.json();
-  
+
         if (!response.ok) {
-          throw new Error(data.error || 'Unknown error');
+          const msg = data.detail || data.error || 'Unknown error';
+          alert('Error: ' + msg);
+          throw new Error(msg);
         }
-  
+
         // Если команда успешно отправлена
         return {
           status: data.status,
-          command: data.command,
+          result: data.result,
         };
       } catch (error) {
         console.error('Ошибка при отправке команды:', error);
+        alert('Error: ' + error.message);
         return { error: error.message };
       }
     }
@@ -87,4 +90,4 @@ window.robotServer = {
   }
   // Инициализируем модуль при загрузке
   window.robotServer.init();
-  
+
