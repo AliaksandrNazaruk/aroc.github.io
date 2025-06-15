@@ -21,26 +21,48 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-async def check_devices_ready():
-    """Verify that all devices are ready for operation."""
-    xarm_state = {}
-    igus_state = {}
+async def check_devices_ready() -> bool:
+    """Ensure XArm, Igus and AGV are operational before running a script."""
+
+    xarm_state: dict = {}
+    igus_state: dict = {}
     agv_state = {"online": symovo_car.online}
 
     try:
         async with xarm_client as client:
             xarm_state = await client.get_data()
+            if (
+                xarm_state.get("has_err_warn")
+                or xarm_state.get("has_error")
+                or xarm_state.get("has_warn")
+            ):
+                raise RuntimeError("xarm has warnings or errors")
     except Exception as e:
+        logger.error("Failed to fetch XArm state: %s", e)
         xarm_state = {"error": str(e)}
 
     try:
         async with igus_client as client:
             igus_state = await client.get_state()
+            if not igus_state.get("homing", False):
+                raise RuntimeError("igus not homed")
+            if igus_state.get("error"):
+                raise RuntimeError("igus reports error")
     except Exception as e:
+        logger.error("Failed to fetch Igus state: %s", e)
         igus_state = {"error": str(e)}
 
-    xarm_ready = xarm_state.get("connected") and xarm_state.get("error_code", 0) == 0
-    igus_ready = igus_state.get("connected") and not igus_state.get("error")
+    xarm_ready = (
+        xarm_state.get("connected")
+        and not xarm_state.get("has_error")
+        and not xarm_state.get("has_err_warn")
+        and xarm_state.get("error_code", 0) == 0
+    )
+    igus_ready = (
+        igus_state.get("connected")
+        and igus_state.get("homing")
+        and not igus_state.get("error")
+    )
     agv_ready = agv_state["online"]
 
     if not (xarm_ready and igus_ready and agv_ready):
@@ -49,6 +71,7 @@ async def check_devices_ready():
             "igus": igus_state,
             "symovo": agv_state,
         }
+        logger.error("Device readiness check failed: %s", detail)
         raise HTTPException(status_code=400, detail=detail)
 
     return True
