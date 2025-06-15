@@ -98,10 +98,3 @@ def xarm_command_operator(data):
     finally:
         if arm is not None:
             arm.disconnect()
-
-data= {}
-data["command"] = "move_to_pose"
-data["pose_name"] = "READY_SECTION_CENTER"
-
-result = xarm_command_operator(data)
-#
