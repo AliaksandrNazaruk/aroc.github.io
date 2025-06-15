@@ -2,6 +2,7 @@ import requests
 import time
 import threading
 from core.state import xarm_client, igus_client
+from fastapi import HTTPException
 
 import drivers.xarm_scripts.xarm_positions as xarm_positions
 import services.led_lib as led_lib
@@ -19,6 +20,39 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+
+async def check_devices_ready():
+    """Verify that all devices are ready for operation."""
+    xarm_state = {}
+    igus_state = {}
+    agv_state = {"online": symovo_car.online}
+
+    try:
+        async with xarm_client as client:
+            xarm_state = await client.get_data()
+    except Exception as e:
+        xarm_state = {"error": str(e)}
+
+    try:
+        async with igus_client as client:
+            igus_state = await client.get_state()
+    except Exception as e:
+        igus_state = {"error": str(e)}
+
+    xarm_ready = xarm_state.get("connected") and xarm_state.get("error_code", 0) == 0
+    igus_ready = igus_state.get("connected") and not igus_state.get("error")
+    agv_ready = agv_state["online"]
+
+    if not (xarm_ready and igus_ready and agv_ready):
+        detail = {
+            "xarm": xarm_state,
+            "igus": igus_state,
+            "symovo": agv_state,
+        }
+        raise HTTPException(status_code=400, detail=detail)
+
+    return True
+
 async def script_operator(stop_event, data):
     """
     Execute robot script based on command.
@@ -28,6 +62,7 @@ async def script_operator(stop_event, data):
         command: Command to execute
     """
     command = data['command']
+    await check_devices_ready()
     try:
         if command == "box_1":
             return await goToBox1(stop_event)
