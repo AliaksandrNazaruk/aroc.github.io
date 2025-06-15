@@ -43,7 +43,9 @@ window.robotServer = {
 
         if (!response.ok) {
           const msg = data.detail || data.error || 'Unknown error';
-          alert('Error: ' + msg);
+
+          showError(msg);
+
           throw new Error(msg);
         }
 
@@ -54,7 +56,9 @@ window.robotServer = {
         };
       } catch (error) {
         console.error('Ошибка при отправке команды:', error);
-        alert('Error: ' + error.message);
+
+        showError(error.message);
+
         return { error: error.message };
       }
     }
@@ -84,10 +88,46 @@ window.robotServer = {
         };
       } catch (error) {
         console.error('Ошибка при отправке команды:', error);
+        showError(error.message);
         return { error: error.message };
       }
     }
   }
   // Инициализируем модуль при загрузке
   window.robotServer.init();
+
+  function showError(message) {
+    let modal = document.getElementById('error-modal');
+    if (!modal) {
+      modal = document.createElement('div');
+      modal.id = 'error-modal';
+      modal.style.position = 'fixed';
+      modal.style.top = '0';
+      modal.style.left = '0';
+      modal.style.width = '100%';
+      modal.style.height = '100%';
+      modal.style.display = 'flex';
+      modal.style.alignItems = 'center';
+      modal.style.justifyContent = 'center';
+      modal.style.backgroundColor = 'rgba(0,0,0,0.5)';
+      const box = document.createElement('div');
+      box.style.background = '#fff';
+      box.style.padding = '20px';
+      box.style.borderRadius = '8px';
+      box.style.minWidth = '200px';
+      box.style.textAlign = 'center';
+      const text = document.createElement('div');
+      text.id = 'error-modal-text';
+      text.style.marginBottom = '10px';
+      box.appendChild(text);
+      const btn = document.createElement('button');
+      btn.textContent = 'OK';
+      btn.onclick = () => modal.remove();
+      box.appendChild(btn);
+      modal.appendChild(box);
+      document.body.appendChild(modal);
+    }
+    modal.querySelector('#error-modal-text').textContent = message;
+  }
+
 
