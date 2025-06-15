@@ -21645,29 +21645,38 @@
                     this.isDown = false;}    // Устанавливаем флаг на false, чтобы прекратить отправку команд
             },
             
-            handleGo: async function() {
-                this.isEditingAbsoluteValue = false;
-                
-                this.isABSActive = true;
-                this.newPosition = this.absoluteValue * 1000;
-                if (this.newPosition < 0 || this.newPosition > 115000) {
-                    alert("Value is not in range 0-115 cm.");
-                    this.isABSActive = false;
-                    return;
-                }
+handleGo: async function() {
+    this.isEditingAbsoluteValue = false;
+    this.isABSActive = true;
     
-                this.speed = window.CommandsRobotSocket.model.robot.state.remote.speedPercent * 10000;
-                try {
-                    this.isMotorActive = true;
-                    
-                    await window.igus.moveToPosition(this.newPosition,  this.speed,  this.speed);
-                } catch (error) {
-                    console.error("ABS error:", error);
-                } finally {
-                    this.isABSActive = false;
-                    this.isMotorActive = false;
-                }
-            },
+    // Явно округляем и приводим к int:
+    let pos = Math.round(this.absoluteValue * 1000);
+    if (!Number.isInteger(pos)) pos = Math.floor(pos); // доп. страховка
+
+    if (pos < 0 || pos > 115000) {
+        alert("Value is not in range 0-115 cm.");
+        this.isABSActive = false;
+        return;
+    }
+
+    // Скорость тоже только int:
+    let speed = Math.round(window.CommandsRobotSocket.model.robot.state.remote.speedPercent * 10000);
+    if (!Number.isInteger(speed)) speed = Math.floor(speed);
+
+    this.newPosition = pos;
+    this.speed = speed;
+
+    try {
+        this.isMotorActive = true;
+        await window.igus.moveToPosition(pos, speed, speed);
+    } catch (error) {
+        console.error("ABS error:", error);
+    } finally {
+        this.isABSActive = false;
+        this.isMotorActive = false;
+    }
+},
+
     
             handleReference: async function() {
                 this.isReferencing = true;
