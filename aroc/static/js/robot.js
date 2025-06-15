@@ -42,9 +42,19 @@ window.robotServer = {
         const data = await response.json();
 
         if (!response.ok) {
-          const msg = data.detail || data.error || 'Unknown error';
+          let msg = 'Unknown error';
+          let details = null;
 
-          showError(msg);
+          if (typeof data.detail === 'string') {
+            msg = data.detail;
+          } else if (data.detail && typeof data.detail === 'object') {
+            msg = data.detail.message || msg;
+            details = data.detail.states;
+          } else if (data.error) {
+            msg = data.error;
+          }
+
+          showError(msg, details);
 
           throw new Error(msg);
         }
@@ -77,9 +87,17 @@ window.robotServer = {
         });
   
         const data = await response.json();
-  
+
         if (!response.ok) {
-          throw new Error(data.detail || 'Unknown error');
+          let msg = 'Unknown error';
+
+          if (typeof data.detail === 'string') {
+            msg = data.detail;
+          } else if (data.detail && typeof data.detail === 'object') {
+            msg = data.detail.message || msg;
+          }
+
+          throw new Error(msg);
         }
   
         // Если команда успешно отправлена
@@ -96,7 +114,7 @@ window.robotServer = {
   // Инициализируем модуль при загрузке
   window.robotServer.init();
 
-  function showError(message) {
+  function showError(message, details = null) {
     let modal = document.getElementById('error-modal');
     if (!modal) {
       modal = document.createElement('div');
@@ -120,6 +138,12 @@ window.robotServer = {
       text.id = 'error-modal-text';
       text.style.marginBottom = '10px';
       box.appendChild(text);
+      const detailsEl = document.createElement('pre');
+      detailsEl.id = 'error-modal-details';
+      detailsEl.style.marginBottom = '10px';
+      detailsEl.style.textAlign = 'left';
+      detailsEl.style.display = 'none';
+      box.appendChild(detailsEl);
       const btn = document.createElement('button');
       btn.textContent = 'OK';
       btn.onclick = () => modal.remove();
@@ -128,6 +152,16 @@ window.robotServer = {
       document.body.appendChild(modal);
     }
     modal.querySelector('#error-modal-text').textContent = message;
+    const detailsEl = modal.querySelector('#error-modal-details');
+    if (detailsEl) {
+      if (details) {
+        detailsEl.style.display = 'block';
+        detailsEl.textContent = JSON.stringify(details, null, 2);
+      } else {
+        detailsEl.style.display = 'none';
+        detailsEl.textContent = '';
+      }
+    }
   }
 
 

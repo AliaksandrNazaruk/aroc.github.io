@@ -83,8 +83,22 @@ async def check_devices_ready() -> bool:
             "igus": igus_state,
             "symovo": agv_state,
         }
+        # Compose a short human readable message so that the frontend can
+        # display a clear error instead of "[object Object]".
+        missing = []
+        if not xarm_ready:
+            missing.append("XArm")
+        if not igus_ready:
+            missing.append("Igus")
+        if not agv_ready:
+            missing.append("AGV")
+        message = "{} not ready".format(", ".join(missing)) if missing else "Devices not ready"
+
         logger.error("Device readiness check failed: %s", detail)
-        raise HTTPException(status_code=400, detail=detail)
+        raise HTTPException(
+            status_code=400,
+            detail={"message": message, "states": detail},
+        )
 
     return True
 
