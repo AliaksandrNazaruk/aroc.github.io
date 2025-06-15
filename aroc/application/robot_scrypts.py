@@ -1,11 +1,11 @@
-import requests
+import asyncio
 import time
-import threading
+from typing import Any, Dict
+
 from core.state import xarm_client, igus_client
 from fastapi import HTTPException
 
 import drivers.xarm_scripts.xarm_positions as xarm_positions
-import services.led_lib as led_lib
 from core.configuration import (
     default_speed,
     ground_zero,
@@ -21,26 +21,60 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-async def check_devices_ready():
-    """Verify that all devices are ready for operation."""
-    xarm_state = {}
-    igus_state = {}
+async def check_devices_ready() -> bool:
+    """Ensure XArm, Igus and AGV are operational before running a script."""
+
+    xarm_state: Dict[str, Any] = {}
+    igus_state: Dict[str, Any] = {}
     agv_state = {"online": symovo_car.online}
 
-    try:
+    async def fetch_xarm_state() -> Dict[str, Any]:
         async with xarm_client as client:
-            xarm_state = await client.get_data()
-    except Exception as e:
-        xarm_state = {"error": str(e)}
+            state = await client.get_data()
+            if (
+                state.get("has_err_warn")
+                or state.get("has_error")
+                or state.get("has_warn")
+            ):
+                raise RuntimeError("xarm has warnings or errors")
+            return state
 
-    try:
+    async def fetch_igus_state() -> Dict[str, Any]:
         async with igus_client as client:
-            igus_state = await client.get_state()
-    except Exception as e:
-        igus_state = {"error": str(e)}
+            state = await client.get_state()
+            if not state.get("homing", False):
+                raise RuntimeError("igus not homed")
+            if state.get("error"):
+                raise RuntimeError("igus reports error")
+            return state
 
-    xarm_ready = xarm_state.get("connected") and xarm_state.get("error_code", 0) == 0
-    igus_ready = igus_state.get("connected") and not igus_state.get("error")
+    results = await asyncio.gather(
+        fetch_xarm_state(), fetch_igus_state(), return_exceptions=True
+    )
+
+    if isinstance(results[0], Exception):
+        logger.error("Failed to fetch XArm state: %s", results[0])
+        xarm_state = {"error": str(results[0])}
+    else:
+        xarm_state = results[0]
+
+    if isinstance(results[1], Exception):
+        logger.error("Failed to fetch Igus state: %s", results[1])
+        igus_state = {"error": str(results[1])}
+    else:
+        igus_state = results[1]
+
+    xarm_ready = (
+        xarm_state.get("connected")
+        and not xarm_state.get("has_error")
+        and not xarm_state.get("has_err_warn")
+        and xarm_state.get("error_code", 0) == 0
+    )
+    igus_ready = (
+        igus_state.get("connected")
+        and igus_state.get("homing")
+        and not igus_state.get("error")
+    )
     agv_ready = agv_state["online"]
 
     if not (xarm_ready and igus_ready and agv_ready):
@@ -49,6 +83,7 @@ async def check_devices_ready():
             "igus": igus_state,
             "symovo": agv_state,
         }
+        logger.error("Device readiness check failed: %s", detail)
         raise HTTPException(status_code=400, detail=detail)
 
     return True
@@ -245,7 +280,7 @@ async def goToBox2(stop_event, speed = default_speed):
                     
                     return True
     except Exception as e:
-        logger.error(f"Go to box 1 error: {e}")
+        logger.error(f"Go to box 2 error: {e}")
         return e
 
 async def changePosition(stop_event, position, speed = default_speed):
