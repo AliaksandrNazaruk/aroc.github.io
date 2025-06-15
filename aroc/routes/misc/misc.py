@@ -79,12 +79,14 @@ def echo(data: Dict[str, Any]):
 
 @router.post("/run_script")
 async def run_script(data: Dict[str, Any]):
-    """Run a script"""
+    """Run a script and return its result."""
     try:
         if "command" not in data:
             raise HTTPException(status_code=400, detail="No 'command' in JSON")
-        
-        await script_operator(None, data)
-        return True
+
+        result = await script_operator(None, data)
+        return {"status": "ok", "result": result}
+    except HTTPException:
+        raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Internal error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))

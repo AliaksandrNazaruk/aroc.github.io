@@ -30,20 +30,21 @@ async def script_operator(stop_event, data):
     command = data['command']
     try:
         if command == "box_1":
-            await goToBox1(stop_event)
+            return await goToBox1(stop_event)
         elif command == "box_2":
-            await goToBox2(stop_event)
+            return await goToBox2(stop_event)
         elif command == "transport":
-            await transport_position(stop_event)
+            return await transport_position(stop_event)
         elif "change_position" == command:
-            await changePosition(stop_event, data['position_name'],speed=int(data['speed']))
+            return await changePosition(stop_event, data['position_name'], speed=int(data['speed']))
 
         elif command == "show_script":
-            await show_script(speed = 90)
+            return await show_script(speed=90)
         elif command == "show_script2":
-            await show_script2(speed = 70)
+            return await show_script2(speed=70)
     except Exception as e:
         logger.error(f"Script operator error: {e}")
+        raise
 
 async def show_script(speed = default_speed):
     try:
@@ -145,34 +146,44 @@ async def transport_position(stop_event, speed=default_speed):
         return False
 
 async def goToBox1(stop_event, speed = default_speed):
+    """Move robot to Box 1 position."""
     first_pos = 40000
     second_pos = 30000
     try:
         async with igus_client as _igus_client:
-            igus_result = await _igus_client.move_to_position(first_pos,(speed * 100),(speed * 100),True)
+            igus_result = await _igus_client.move_to_position(first_pos, (speed * 100), (speed * 100), True)
+            if not igus_result.get("success", False):
+                error_msg = igus_result.get("error", "Igus move failed")
+                logger.error(f"Igus movement failed: {error_msg}")
+                raise Exception(error_msg)
+
             igus_position = await igus_client.get_position()
             igus_position = igus_position.get('position')
             result = abs(igus_position - first_pos)
-            if  result < 250:
+            if result < 250:
                 async with xarm_client as _xarm_client:
                     current_pose = await _xarm_client.get_current_position()
-                    igus_result = await _igus_client.move_to_position(second_pos,(speed * 100)/3,(speed * 100)/2,False)
+                    igus_result = await _igus_client.move_to_position(int(second_pos), int((speed * 100)/3), int((speed * 100)/2), False)
 
                     if not igus_result.get('success', False):
-                        logger.error(f"Igus movement failed: {igus_result.get('error')}")
-                        return False
-                                                            
-                    robot_result = await _xarm_client.go_to_position([xarm_positions.poses["TRANSPORT_STEP_1"], xarm_positions.poses["BOX_STEP_1"], xarm_positions.poses["BOX_1_STEP_2"]],angle_speed=speed)
+                        error_msg = igus_result.get('error', 'Igus move failed')
+                        logger.error(f"Igus movement failed: {error_msg}")
+                        raise Exception(error_msg)
+
+                    robot_result = await _xarm_client.go_to_position([xarm_positions.poses["TRANSPORT_STEP_1"], xarm_positions.poses["BOX_STEP_1"], xarm_positions.poses["BOX_1_STEP_2"]], angle_speed=speed)
 
                     if not robot_result.get('success', False):
-                        logger.error(f"Robot movement failed: {robot_result.get('error')}")
-                        return False
-                    
+                        error_msg = robot_result.get('error', 'Robot move failed')
+                        logger.error(f"Robot movement failed: {error_msg}")
+                        raise Exception(error_msg)
+
                     return True
-                
+
+            raise Exception("Position tolerance exceeded")
+
     except Exception as e:
         logger.error(f"Go to box 1 error: {e}")
-        return e
+        raise
 
 async def goToBox2(stop_event, speed = default_speed):
     first_pos = 40000
