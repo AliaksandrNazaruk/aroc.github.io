@@ -98,3 +98,4 @@ def xarm_command_operator(data):
     finally:
         if arm is not None:
             arm.disconnect()
+
