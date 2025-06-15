@@ -7,9 +7,6 @@ controller.py — High-level API для dryve D1 (igus), объединяющи�
 import time
 import logging
 from dataclasses import dataclass, field
-import sys
-import os
-sys.path.insert(0, os.path.abspath(os.path.dirname(__file__) + "/../.."))
 
 from drivers.igus_scripts.protocol import DryveSDO
 from drivers.igus_scripts.machine import DriveStateMachine

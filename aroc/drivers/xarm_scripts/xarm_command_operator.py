@@ -1,4 +1,8 @@
 from xarm.wrapper import XArmAPI
+import sys
+import os
+sys.path.insert(0, os.path.abspath(os.path.dirname(__file__) + "/../.."))
+
 from drivers.xarm_scripts import (
     get_robot_data,
     take,
@@ -35,6 +39,7 @@ def xarm_command_operator(data):
     try:
         # Connect to xArm
         arm = XArmAPI(xarm_manipulator_ip, baud_checkset=False)
+        arm.get_robot_sn()
         if not arm.connected:
             return {
                 "success": False,
@@ -94,9 +99,9 @@ def xarm_command_operator(data):
         if arm is not None:
             arm.disconnect()
 
-# data= {}
-# data["command"] = "move_to_pose"
-# data["pose_name"] = "READY_SECTION_CENTER"
+data= {}
+data["command"] = "move_to_pose"
+data["pose_name"] = "READY_SECTION_CENTER"
 
-# result = xarm_command_operator(data)
-# #
+result = xarm_command_operator(data)
+#
