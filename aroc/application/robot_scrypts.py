@@ -4,6 +4,7 @@ from typing import Any, Dict
 
 from core.state import xarm_client, igus_client
 from fastapi import HTTPException
+import traceback
 
 import drivers.xarm_scripts.xarm_positions as xarm_positions
 from core.configuration import (
@@ -26,7 +27,7 @@ async def check_devices_ready() -> bool:
 
     xarm_state: Dict[str, Any] = {}
     igus_state: Dict[str, Any] = {}
-    agv_state = {"online": symovo_car.online}
+    # agv_state = {"online": symovo_car.online}
 
     async def fetch_xarm_state() -> Dict[str, Any]:
         async with xarm_client as client:
@@ -52,15 +53,21 @@ async def check_devices_ready() -> bool:
         fetch_xarm_state(), fetch_igus_state(), return_exceptions=True
     )
 
+    def exc_details(e):
+        return {
+            "type": type(e).__name__,
+            "msg": str(e.args[0]),
+        }
+
     if isinstance(results[0], Exception):
         logger.error("Failed to fetch XArm state: %s", results[0])
-        xarm_state = {"error": str(results[0])}
+        xarm_state = {"error": exc_details(results[0])}
     else:
         xarm_state = results[0]
 
     if isinstance(results[1], Exception):
         logger.error("Failed to fetch Igus state: %s", results[1])
-        igus_state = {"error": str(results[1])}
+        igus_state = {"error": exc_details(results[1])}
     else:
         igus_state = results[1]
 
@@ -75,13 +82,14 @@ async def check_devices_ready() -> bool:
         and igus_state.get("homing")
         and not igus_state.get("error")
     )
-    agv_ready = agv_state["online"]
+    # agv_ready = agv_state["online"]
 
-    if not (xarm_ready and igus_ready and agv_ready):
+    # if not (xarm_ready and igus_ready and agv_ready):
+    if not (xarm_ready and igus_ready):
         detail = {
             "xarm": xarm_state,
             "igus": igus_state,
-            "symovo": agv_state,
+            # "symovo": agv_state,
         }
         # Compose a short human readable message so that the frontend can
         # display a clear error instead of "[object Object]".
@@ -90,16 +98,14 @@ async def check_devices_ready() -> bool:
             missing.append("XArm")
         if not igus_ready:
             missing.append("Igus")
-        if not agv_ready:
-            missing.append("AGV")
+        # if not agv_ready:
+        #     missing.append("AGV")
         message = "{} not ready".format(", ".join(missing)) if missing else "Devices not ready"
 
-        logger.error("Device readiness check failed: %s", detail)
         raise HTTPException(
             status_code=400,
             detail={"message": message, "states": detail},
         )
-
     return True
 
 async def script_operator(stop_event, data):
@@ -122,49 +128,10 @@ async def script_operator(stop_event, data):
         elif "change_position" == command:
             return await changePosition(stop_event, data['position_name'], speed=int(data['speed']))
 
-        elif command == "show_script":
-            return await show_script(speed=90)
-        elif command == "show_script2":
-            return await show_script2(speed=70)
     except Exception as e:
         logger.error(f"Script operator error: {e}")
         raise
 
-async def show_script(speed = default_speed):
-    try:
-        async with xarm_client as client:
-            robot_result = await client.go_to_position([xarm_positions.poses["READY_STEP_1"],xarm_positions.poses["READY_STEP_2"],xarm_positions.poses["READY_SECTION_CENTER"],xarm_positions.poses["TARGET_DAVE_CAMERA_FOCUS"]],angle_speed=speed)
-        if not robot_result.get('success', False):
-            logger.error(f"Robot movement failed: {robot_result.get('error')}")
-    except Exception as e:
-        logger.error(f"Change position error: {e}")
-    
-async def show_script2(speed = default_speed):
-    try:
-        symovo_result = symovo_car.go_to_position("GoToRegal", reconfig=True, wait=True)
-        time.sleep(10)
-            # Move igus motor
-        igus_result = await command_interface.execute_command(
-            MotorCommand(
-                type="move_to_position",
-                params={
-                    "position": 45000,
-                    "velocity": speed * 100,
-                    "acceleration": speed * 100,
-                    "wait": False
-                }
-            )
-        )
-        robot_result = robot_lib.go_to_position([xarm_positions.poses["READY_STEP_1"],
-                                                xarm_positions.poses["READY_STEP_2"],
-                                                xarm_positions.poses["READY_SECTION_CENTER"],
-                                                xarm_positions.poses["TARGET_DAVE_CAMERA_FOCUS"]],
-                                                angle_speed=speed)
-        if not robot_result.get('success', False):
-            logger.error(f"Robot movement failed: {robot_result.get('error')}")
-
-    except Exception as e:
-        logger.error(f"Change position error: {e}")
 
 async def job(item_data, speed = default_speed):
     """
@@ -256,7 +223,7 @@ async def goToBox1(stop_event, speed = default_speed):
 
                     robot_result = await _xarm_client.go_to_position([xarm_positions.poses["TRANSPORT_STEP_1"], xarm_positions.poses["BOX_STEP_1"], xarm_positions.poses["BOX_1_STEP_2"]], angle_speed=speed)
 
-                    if not robot_result.get('success', False):
+                    if not robot_result:
                         error_msg = robot_result.get('error', 'Robot move failed')
                         logger.error(f"Robot movement failed: {error_msg}")
                         raise Exception(error_msg)
@@ -270,32 +237,44 @@ async def goToBox1(stop_event, speed = default_speed):
         raise
 
 async def goToBox2(stop_event, speed = default_speed):
+    """Move robot to Box 2 position."""
     first_pos = 40000
     second_pos = 30000
     try:
         async with igus_client as _igus_client:
-            igus_result = await _igus_client.move_to_position(first_pos,(speed * 100),(speed * 100),True)
+            igus_result = await _igus_client.move_to_position(first_pos, (speed * 100), (speed * 100), True)
+            if not igus_result.get("success", False):
+                error_msg = igus_result.get("error", "Igus move failed")
+                logger.error(f"Igus movement failed: {error_msg}")
+                raise Exception(error_msg)
+
             igus_position = await igus_client.get_position()
             igus_position = igus_position.get('position')
             result = abs(igus_position - first_pos)
-            if  result < 250:
+            if result < 250:
                 async with xarm_client as _xarm_client:
                     current_pose = await _xarm_client.get_current_position()
-                    igus_result = await _igus_client.move_to_position(30000,(speed * 100)/3,(speed * 100)/2,False)
+                    igus_result = await _igus_client.move_to_position(int(second_pos), int((speed * 100)/3), int((speed * 100)/2), False)
 
                     if not igus_result.get('success', False):
-                        logger.error(f"Igus movement failed: {igus_result.get('error')}")
-                        return False
+                        error_msg = igus_result.get('error', 'Igus move failed')
+                        logger.error(f"Igus movement failed: {error_msg}")
+                        raise Exception(error_msg)
 
-                    robot_result = await _xarm_client.go_to_position([xarm_positions.poses["TRANSPORT_STEP_1"], xarm_positions.poses["BOX_STEP_1"], xarm_positions.poses["BOX_2_STEP_2"]],angle_speed=speed)
-                    if not robot_result.get('success', False):
-                        logger.error(f"Robot movement failed: {robot_result.get('error')}")
-                        return False
-                    
+                    robot_result = await _xarm_client.go_to_position([xarm_positions.poses["TRANSPORT_STEP_1"], xarm_positions.poses["BOX_STEP_1"], xarm_positions.poses["BOX_2_STEP_2"]], angle_speed=speed)
+
+                    if not robot_result:
+                        error_msg = robot_result.get('error', 'Robot move failed')
+                        logger.error(f"Robot movement failed: {error_msg}")
+                        raise Exception(error_msg)
+
                     return True
+
+            raise Exception("Position tolerance exceeded")
+
     except Exception as e:
         logger.error(f"Go to box 2 error: {e}")
-        return e
+        raise
 
 async def changePosition(stop_event, position, speed = default_speed):
     try:
