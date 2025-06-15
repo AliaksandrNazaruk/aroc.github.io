@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Keyboard Control Configuration</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      background-color: #f0f2f5;
+      text-align: center;
+      padding: 20px;
+    }
+    .container {
+      width: 90%;
+      max-width: 600px;
+      background-color: #fff;
+      padding: 20px 30px;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    h1 {
+      margin-bottom: 25px;
+      color: #333;
+    }
+    .control-group {
+      border: 1px solid #e0e0e0;
+      padding: 15px;
+      margin-bottom: 20px;
+      border-radius: 6px;
+    }
+    .control-group h2 {
+      margin-bottom: 15px;
+      font-size: 18px;
+      color: #333;
+    }
+    .key-binding {
+      display: flex;
+      align-items: center;
+      margin-bottom: 10px;
+      padding: 5px;
+    }
+    .key-binding:hover {
+      background-color: #f8f9fa;
+    }
+    .key-binding label {
+      flex: 1;
+      text-align: right;
+      padding-right: 15px;
+      color: #555;
+    }
+    .key-binding .key-input {
+      flex: 1;
+      padding: 5px 10px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      background-color: #fff;
+      cursor: pointer;
+      text-align: center;
+      user-select: none;
+    }
+    .key-input.active {
+      background-color: #e9ecef;
+      border-color: #007bff;
+    }
+    .buttons {
+      margin-top: 20px;
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .save-btn {
+      background-color: #28a745;
+      color: #fff;
+    }
+    .save-btn:hover {
+      background-color: #218838;
+    }
+    .reset-btn {
+      background-color: #dc3545;
+      color: #fff;
+    }
+    .reset-btn:hover {
+      background-color: #c82333;
+    }
+    .key-input.conflict {
+      border-color: #dc3545;
+      background-color: #f8d7da;
+    }
+    .warning {
+      color: #dc3545;
+      font-size: 12px;
+      margin-top: 5px;
+      display: none;
+    }
+    .warning.visible {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Keyboard Control Settings</h1>
+    
+    <!-- Coordinate Controls -->
+    <div class="control-group">
+      <h2>Coordinate Controls</h2>
+      <div class="key-binding">
+        <label>X Axis +</label>
+        <div class="key-input" data-action="coord-x-increase">I</div>
+      </div>
+      <div class="key-binding">
+        <label>X Axis -</label>
+        <div class="key-input" data-action="coord-x-decrease">K</div>
+      </div>
+      <div class="key-binding">
+        <label>Y Axis +</label>
+        <div class="key-input" data-action="coord-y-increase">J</div>
+      </div>
+      <div class="key-binding">
+        <label>Y Axis -</label>
+        <div class="key-input" data-action="coord-y-decrease">L</div>
+      </div>
+      <div class="key-binding">
+        <label>Z Axis +</label>
+        <div class="key-input" data-action="coord-z-increase">U</div>
+      </div>
+      <div class="key-binding">
+        <label>Z Axis -</label>
+        <div class="key-input" data-action="coord-z-decrease">O</div>
+      </div>
+    </div>
+
+    <!-- Rotation Controls -->
+    <div class="control-group">
+      <h2>Rotation Controls</h2>
+      <div class="key-binding">
+        <label>RX +</label>
+        <div class="key-input" data-action="coord-rx-increase">Y</div>
+      </div>
+      <div class="key-binding">
+        <label>RX -</label>
+        <div class="key-input" data-action="coord-rx-decrease">H</div>
+      </div>
+      <div class="key-binding">
+        <label>RY +</label>
+        <div class="key-input" data-action="coord-ry-increase">T</div>
+      </div>
+      <div class="key-binding">
+        <label>RY -</label>
+        <div class="key-input" data-action="coord-ry-decrease">G</div>
+      </div>
+      <div class="key-binding">
+        <label>RZ +</label>
+        <div class="key-input" data-action="coord-rz-increase">B</div>
+      </div>
+      <div class="key-binding">
+        <label>RZ -</label>
+        <div class="key-input" data-action="coord-rz-decrease">N</div>
+      </div>
+    </div>
+
+    <!-- Lift Controls -->
+    <div class="control-group">
+      <h2>Lift Controls</h2>
+      <div class="key-binding">
+        <label>Lift Up</label>
+        <div class="key-input" data-action="lift-z-increase">W</div>
+      </div>
+      <div class="key-binding">
+        <label>Lift Down</label>
+        <div class="key-input" data-action="lift-z-decrease">S</div>
+      </div>
+    </div>
+
+    <!-- Function Controls -->
+    <div class="control-group">
+      <h2>Function Controls</h2>
+      <div class="key-binding">
+        <label>Reference</label>
+        <div class="key-input" data-action="reference">R</div>
+      </div>
+      <div class="key-binding">
+        <label>Fault Reset</label>
+        <div class="key-input" data-action="fault-reset">F</div>
+      </div>
+    </div>
+
+    <div class="warning" id="conflictWarning">
+      This key is already in use. Please choose a different key.
+    </div>
+
+    <div class="buttons">
+      <button class="reset-btn" id="resetButton">Reset to Default</button>
+      <button class="save-btn" id="saveButton">Save Changes</button>
+    </div>
+  </div>
+
+  <script>
+    let activeInput = null;
+    let keyMap = {};
+    const defaultKeyMap = {
+      'coord-x-increase': 'I',
+      'coord-x-decrease': 'K',
+      'coord-y-increase': 'J',
+      'coord-y-decrease': 'L',
+      'coord-z-increase': 'U',
+      'coord-z-decrease': 'O',
+      'coord-rx-increase': 'Y',
+      'coord-rx-decrease': 'H',
+      'coord-ry-increase': 'T',
+      'coord-ry-decrease': 'G',
+      'coord-rz-increase': 'B',
+      'coord-rz-decrease': 'N',
+      'lift-z-increase': 'W',
+      'lift-z-decrease': 'S',
+      'reference': 'R',
+      'fault-reset': 'F'
+    };
+
+    // Load saved keymap or use defaults
+    function loadKeyMap() {
+      const savedKeyMap = localStorage.getItem('keyboardBindings');
+      keyMap = savedKeyMap ? JSON.parse(savedKeyMap) : { ...defaultKeyMap };
+      updateKeyBindingDisplay();
+    }
+
+    // Update the display of all key bindings
+    function updateKeyBindingDisplay() {
+      document.querySelectorAll('.key-input').forEach(elem => {
+        const action = elem.dataset.action;
+        elem.textContent = keyMap[action] || '';
+      });
+    }
+
+    // Check for key conflicts
+    function hasConflict(key, currentAction) {
+      for (let action in keyMap) {
+        if (action !== currentAction && keyMap[action] === key) {
+          return true;
+        }
+      }
+      return false;
+    }
+
+    // Handle key input
+    document.addEventListener('keydown', function(e) {
+      if (activeInput) {
+        e.preventDefault();
+        const key = e.key.toUpperCase();
+        const action = activeInput.dataset.action;
+        
+        // Check for conflicts
+        if (hasConflict(key, action)) {
+          activeInput.classList.add('conflict');
+          document.getElementById('conflictWarning').classList.add('visible');
+          return;
+        }
+
+        // Update binding
+        keyMap[action] = key;
+        activeInput.textContent = key;
+        activeInput.classList.remove('active', 'conflict');
+        document.getElementById('conflictWarning').classList.remove('visible');
+        activeInput = null;
+      }
+    });
+
+    // Handle clicking on key binding inputs
+    document.querySelectorAll('.key-input').forEach(elem => {
+      elem.addEventListener('click', function() {
+        if (activeInput) {
+          activeInput.classList.remove('active', 'conflict');
+        }
+        activeInput = this;
+        activeInput.classList.add('active');
+        document.getElementById('conflictWarning').classList.remove('visible');
+      });
+    });
+
+    // Handle save button
+    document.getElementById('saveButton').addEventListener('click', function() {
+      localStorage.setItem('keyboardBindings', JSON.stringify(keyMap));
+      window.parent.postMessage({ type: 'keyBindingsUpdated', keyMap: keyMap }, '*');
+    });
+
+    // Handle reset button
+    document.getElementById('resetButton').addEventListener('click', function() {
+      keyMap = { ...defaultKeyMap };
+      updateKeyBindingDisplay();
+      document.querySelectorAll('.key-input').forEach(elem => {
+        elem.classList.remove('conflict');
+      });
+      document.getElementById('conflictWarning').classList.remove('visible');
+    });
+
+    // Click outside to cancel binding
+    document.addEventListener('click', function(e) {
+      if (!e.target.classList.contains('key-input') && activeInput) {
+        activeInput.classList.remove('active', 'conflict');
+        document.getElementById('conflictWarning').classList.remove('visible');
+        activeInput = null;
+      }
+    });
+
+    // Initial load
+    loadKeyMap();
+  </script>
+</body>
+</html> 

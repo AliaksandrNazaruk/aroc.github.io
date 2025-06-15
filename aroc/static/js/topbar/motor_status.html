@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Тест IgusApi</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 2em; }
+        button { margin: 0.5em; }
+        #output { margin-top: 1em; background: #f0f0f0; padding: 1em; border-radius: 5px; }
+        .error { color: red; }
+    </style>
+</head>
+<body>
+    <h1>Тест IgusApi</h1>
+    <button onclick="getState()">Получить состояние</button>
+    <button onclick="reference()">Reference (Homing)</button>
+    <button onclick="moveToPosition()">Move to Position</button>
+    <button onclick="faultReset()">Fault Reset</button>
+    <button onclick="switchOn()">Switch On</button>
+    <button onclick="enableOperation()">Enable Operation</button>
+    <button onclick="shutdown()">Shutdown</button>
+    <div id="output"></div>
+
+    <script>
+        // Вставьте сюда класс IgusApi из предыдущего ответа!
+        class IgusApi {
+            constructor(baseUrl = '/api/igus') {
+                this.baseUrl = baseUrl;
+            }
+            async getState() {
+                const response = await fetch(`${this.baseUrl}/state`);
+                if (!response.ok) throw new Error(await response.text());
+                return await response.json();
+            }
+            async getData() {
+                const response = await fetch(`${this.baseUrl}/data`);
+                if (!response.ok) throw new Error(await response.text());
+                return await response.json();
+            }
+            async sendCommand(type, params = {}) {
+                const response = await fetch(`${this.baseUrl}/`+type, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(params) // <-- убираем params как обёртку!
+                });
+                if (!response.ok) throw new Error(await response.text());
+                return await response.json();
+            }
+            async reference() { return this.sendCommand('reference'); }
+            async moveToPosition(position, velocity = 5000, acceleration = 5000) {
+                return this.sendCommand('move_to_position', { position, velocity, acceleration });
+            }
+            async faultReset() { return this.sendCommand('fault_reset'); }
+            async shutdown() { return this.sendCommand('shutdown'); }
+            async switchOn() { return this.sendCommand('switch_on'); }
+            async enableOperation() { return this.sendCommand('enable_operation'); }
+            async runScript(scriptData) {
+                const response = await fetch(`${this.baseUrl}/run_script`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(scriptData)
+                });
+                if (!response.ok) throw new Error(await response.text());
+                return await response.json();
+            }
+        }
+
+        const igus = new IgusApi();
+        const output = document.getElementById('output');
+
+        function showResult(result) {
+            output.innerHTML = `<pre>${JSON.stringify(result, null, 2)}</pre>`;
+        }
+        function showError(error) {
+            output.innerHTML = `<div class="error">Ошибка: ${error.message}</div>`;
+        }
+
+        function getState() {
+            igus.getData().then(showResult).catch(showError);
+        }
+        function reference() {
+            igus.reference().then(showResult).catch(showError);
+        }
+        function moveToPosition() {
+            const pos = prompt('Введите позицию (число):', '1000');
+            if (pos !== null) {
+                igus.moveToPosition(Number(pos)).then(showResult).catch(showError);
+            }
+        }
+        function faultReset() {
+            igus.faultReset().then(showResult).catch(showError);
+        }
+        function switchOn() {
+            igus.switchOn().then(showResult).catch(showError);
+        }
+        function enableOperation() {
+            igus.enableOperation().then(showResult).catch(showError);
+        }
+        function shutdown() {
+            igus.shutdown().then(showResult).catch(showError);
+        }
+    </script>
+</body>
+</html>
