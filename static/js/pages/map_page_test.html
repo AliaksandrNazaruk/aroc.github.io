@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Symovo Map Viewer</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 30px; background: #f9f9f9; }
+        #map-container {
+            margin-top: 20px;
+            background: #fff;
+            box-shadow: 0 2px 12px #0001;
+            border-radius: 12px;
+            padding: 16px;
+            display: inline-block;
+        }
+        #map-canvas {
+            display: block;
+            max-width: 100%;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px #0002;
+        }
+        #status { margin-top: 10px; color: #666; font-size: 1em; }
+    </style>
+    <!-- pako для zlib (decompress) -->
+    
+    <script src="https://cdn.jsdelivr.net/npm/pako@2.1.0/dist/pako.min.js"></script>
+</head>
+<body>
+    <h2>Symovo Map Viewer</h2>
+    <div id="map-container">
+        <span id="status">Loading map...</span>
+        <canvas id="map-canvas" style="display:none;"></canvas>
+    </div>
+    <script>
+        function base64ToUint8Array(base64) {
+            const binary = atob(base64);
+            const len = binary.length;
+            const bytes = new Uint8Array(len);
+            for (let i = 0; i < len; i++) {
+                bytes[i] = binary.charCodeAt(i);
+            }
+            return bytes;
+        }
+
+        const API_URL = "/api/symovo_car/maps";
+        async function loadMap() {
+            try {
+                const response = await fetch(API_URL);
+                if (!response.ok) throw new Error("Network error: " + response.status);
+                const maps = await response.json();
+                if (!maps.length) throw new Error("No map found");
+                const map = maps[0];
+                const [width, height] = map.size; // Или [width, height] = [531, 323] — подбери порядок!
+                const raw = base64ToUint8Array(map.image);
+                console.log("raw.length", raw.length);
+                const canvas = document.getElementById('map-canvas');
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                const imageData = ctx.createImageData(width, height);
+
+                for (let i = 0; i < raw.length; i++) {
+                    const v = raw[i];
+                    imageData.data[i * 4 + 0] = v; // R
+                    imageData.data[i * 4 + 1] = v; // G
+                    imageData.data[i * 4 + 2] = v; // B
+                    imageData.data[i * 4 + 3] = 255; // A
+                }
+                ctx.putImageData(imageData, 0, 0);
+
+
+                canvas.style.display = "block";
+                document.getElementById('status').style.display = "none";
+
+
+            } catch (e) {
+                document.getElementById('status').textContent = "Ошибка загрузки карты: " + e.message;
+            }
+        }
+        loadMap();
+    </script>
+</body>
+</html>
