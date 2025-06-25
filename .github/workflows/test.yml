@@ -1,4 +1,4 @@
-name: Python Tests
+name: Python CI
 
 on:
   push:
@@ -9,22 +9,19 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: aroc  # <-- ключевая строчка
+
     steps:
     - uses: actions/checkout@v4
-      with:
-        # Если папка большая, можно указать глубину (по умолчанию 1)
-        fetch-depth: 0
+
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
-        python-version: "3.11"
+        python-version: '3.11'
+
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
+
     - name: Run tests
-      run: |
-        pytest --cov=routes.api.igus --cov-report=term-missing tests/
+      run: pytest --cov=routes.api.igus --cov-report=term-missing
