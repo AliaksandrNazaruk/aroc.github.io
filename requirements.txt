@@ -3,6 +3,7 @@ uvicorn
 pytest
 pytest-cov
 pydantic
+httpx
 websockets
 aiohttp
 requests
@@ -14,4 +15,3 @@ websocket-client
 pyserial
 pillow
 xarm
-httpx
