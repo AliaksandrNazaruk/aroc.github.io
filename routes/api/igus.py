@@ -135,10 +135,10 @@ class MotorStatusResponse(BaseModel):
         ..., description="Current position in encoder units", example=10000
     )
 
-
 async def guarded_motor_command(
     func: Callable, *args, **kwargs
 ) -> MotorCommandResponse:
+
     """Execute a motor command ensuring exclusive access to the device."""
     if motor_lock.locked():
         raise HTTPException(status_code=status.HTTP_423_LOCKED, detail="Motor is busy")

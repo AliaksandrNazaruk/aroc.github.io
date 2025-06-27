@@ -286,6 +286,7 @@ class XarmJointsPositionResponse(BaseModel):
 async def guarded_manipulator_command(
     func: Callable, *args, **kwargs
 ) -> XarmCommandResponse:
+
     """Execute manipulator command ensuring exclusive access."""
     async with manipulator_lock:
         return await _execute_manipulator_command(func, *args, **kwargs)
