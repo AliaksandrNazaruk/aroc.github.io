@@ -73,11 +73,22 @@ task_manager = TaskManager()
 
 
 class TaskStatusResponse(BaseModel):
-    status: str
-    result: Optional[Any] = None
+    """Information about an asynchronous motor task."""
 
+    status: str = Field(
+        ..., description="Current state of the task", example="working"
+    )
+    result: Optional[Any] = Field(
+        None, description="Result returned when the task completes"
+    )
 
-@router.get("/motor/task_status/{task_id}", response_model=TaskStatusResponse)
+@router.get(
+    "/motor/task_status/{task_id}",
+    response_model=TaskStatusResponse,
+    summary="Get async task status",
+    description="Return progress information for a previously started motor command.",
+)
+
 async def get_motor_task_status(task_id: str):
     """Return status information for a previously started async motor command."""
     status = task_manager.get_status(task_id)
