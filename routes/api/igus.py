@@ -73,6 +73,7 @@ class TaskStatusResponse(BaseModel):
 
 @router.get("/motor/task_status/{task_id}", response_model=TaskStatusResponse)
 async def get_motor_task_status(task_id: str):
+    """Return status information for a previously started async motor command."""
     status = task_manager.get_status(task_id)
     return status
 
@@ -116,6 +117,7 @@ class MotorStatusResponse(BaseModel):
     position: int = Field(..., description="Current position in encoder units", example=10000)
 
 async def guarded_motor_command(func: Callable, *args, **kwargs) -> MotorCommandResponse:
+    """Execute a motor command ensuring exclusive access to the device."""
     if motor_lock.locked():
         raise HTTPException(
             status_code=status.HTTP_423_LOCKED,
@@ -125,6 +127,7 @@ async def guarded_motor_command(func: Callable, *args, **kwargs) -> MotorCommand
         return await _execute_motor_command(func, *args, **kwargs)
 
 async def _execute_motor_command(func: Callable, *args, **kwargs):
+    """Run a potentially blocking motor command in a thread pool."""
     try:
         result = await run_in_threadpool(func, *args, **kwargs)
         if hasattr(result, 'result') and hasattr(result, 'done'):
@@ -158,6 +161,7 @@ async def _execute_motor_command(func: Callable, *args, **kwargs):
     }
 )
 async def move_motor(params: MotorMoveParams):
+    """Move the Igus motor to a specified absolute position."""
     from core.state import igus_motor
     if motor_lock.locked():
         raise HTTPException(
@@ -193,6 +197,7 @@ async def move_motor(params: MotorMoveParams):
     }
 )
 async def reference_motor(blocking: bool = True):
+    """Run the homing (reference) procedure for the Igus motor."""
     from core.state import igus_motor
     if motor_lock.locked():
         raise HTTPException(
@@ -228,7 +233,7 @@ async def reference_motor(blocking: bool = True):
     }
 )
 async def reset_faults(blocking: bool = True):
-    """Resets faults on the Igus motor and returns the result."""
+    """Reset fault state on the Igus motor controller."""
     from core.state import igus_motor
     if motor_lock.locked():
         raise HTTPException(
@@ -263,6 +268,7 @@ async def reset_faults(blocking: bool = True):
     }
 )
 async def get_motor_status() -> MotorStatusResponse:
+    """Retrieve current motor controller status information."""
     from core.state import igus_motor
     if motor_lock.locked():
         raise HTTPException(

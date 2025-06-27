@@ -1,3 +1,4 @@
+"""xArm manipulator API routes for motion, gripper control and status."""
 
 import asyncio
 import uuid
@@ -67,6 +68,7 @@ class TaskStatusResponse(BaseModel):
 
 @router.get("/manipulator/task_status/{task_id}", response_model=TaskStatusResponse)
 async def get_motor_task_status(task_id: str):
+    """Return status information for a previously started async manipulator task."""
     status = task_manager.get_status(task_id)
     return status
 
@@ -238,10 +240,12 @@ class XarmJointsPositionResponse(BaseModel):
     joints: Optional[Any] = Field(..., description="", example={'j1': 0, 'j2': 0, 'j3': 0, 'j4': 0, 'j5': 0, 'j6': 0})
 
 async def guarded_manipulator_command(func: Callable, *args, **kwargs) -> XarmCommandResponse:
+    """Execute manipulator command ensuring exclusive access."""
     async with manipulator_lock:
         return await _execute_manipulator_command(func, *args, **kwargs)
 
 async def _execute_manipulator_command(func: Callable, *args, **kwargs):
+    """Run a manipulator command in a thread pool and return its result."""
     try:
         result = await run_in_threadpool(func, *args, **kwargs)
         if hasattr(result, 'result') and hasattr(result, 'done'):
@@ -267,6 +271,7 @@ async def _execute_manipulator_command(func: Callable, *args, **kwargs):
     }
 )
 async def complex_move_with_joints_dict(params: XarmMoveWithJointsDictParams):
+    """Move the manipulator along a series of joint positions."""
     if manipulator_lock.locked():
         raise HTTPException(status_code=status.HTTP_423_LOCKED, detail="Manipulator is busy")
     try:
@@ -301,6 +306,7 @@ async def complex_move_with_joints_dict(params: XarmMoveWithJointsDictParams):
     }
 )
 async def change_joints(params: XarmMoveWithJointsParams):
+    """Move the manipulator to the given joint angles."""
     if manipulator_lock.locked():
         raise HTTPException(status_code=status.HTTP_423_LOCKED,detail="Manipulator is busy")
     try:
@@ -333,6 +339,7 @@ async def change_joints(params: XarmMoveWithJointsParams):
     }
 )
 async def change_pose(params: XarmMoveWithPoseParams):
+    """Move the manipulator to a named pose."""
     if manipulator_lock.locked():
         raise HTTPException(status_code=status.HTTP_423_LOCKED,detail="Manipulator is busy")
     try:
@@ -365,6 +372,7 @@ async def change_pose(params: XarmMoveWithPoseParams):
     }
 )
 async def change_tool_position(params: XarmMoveWithToolParams):
+    """Adjust tool position using provided offsets."""
     if manipulator_lock.locked():
         raise HTTPException(status_code=status.HTTP_423_LOCKED,detail="Manipulator is busy")
     try:
@@ -396,6 +404,7 @@ async def change_tool_position(params: XarmMoveWithToolParams):
     }
 )
 async def gripper_drop():
+    """Release the object currently held by the gripper."""
     if manipulator_lock.locked():
         raise HTTPException(
             status_code=status.HTTP_423_LOCKED,
@@ -429,6 +438,7 @@ async def gripper_drop():
     }
 )
 async def gripper_take():
+    """Close the gripper to take an object."""
     if manipulator_lock.locked():
         raise HTTPException(
             status_code=status.HTTP_423_LOCKED,
@@ -463,6 +473,7 @@ async def gripper_take():
     }
 )
 async def reset_faults():
+    """Reset error state on the manipulator controller."""
     if manipulator_lock.locked():
         raise HTTPException(
             status_code=status.HTTP_423_LOCKED,
@@ -503,6 +514,7 @@ async def reset_faults():
     }
 )
 async def get_manipulator_status():
+    """Return current manipulator status information."""
     if manipulator_lock.locked():
         raise HTTPException(
             status_code=status.HTTP_423_LOCKED,
@@ -542,6 +554,7 @@ async def get_manipulator_status():
     }
 )
 async def get_current_position():
+    """Fetch the current named pose and joint positions."""
     if manipulator_lock.locked():
         raise HTTPException(
             status_code=status.HTTP_423_LOCKED,
@@ -575,6 +588,7 @@ async def get_current_position():
     }
 )
 async def get_manipulator_joints_position():
+    """Return the current joint angles of the manipulator."""
     if manipulator_lock.locked():
         raise HTTPException(
             status_code=status.HTTP_423_LOCKED,
