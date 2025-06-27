@@ -1,3 +1,10 @@
+"""xArm manipulator API.
+
+These endpoints allow issuing movement commands, controlling the gripper,
+resetting faults and querying the manipulator status. Only one command can
+be processed at a time; concurrent requests will return HTTP 423 Locked.
+Both blocking and asynchronous operations are supported via task IDs.
+"""
 
 import asyncio
 import uuid
@@ -62,15 +69,20 @@ class TaskManager:
 task_manager = TaskManager()
 
 class TaskStatusResponse(BaseModel):
+    """Status information for an asynchronous manipulator task."""
+
     status: str
     result: Optional[Any] = None
 
 @router.get("/manipulator/task_status/{task_id}", response_model=TaskStatusResponse)
 async def get_motor_task_status(task_id: str):
+    """Return status information for a previously started async manipulator task."""
     status = task_manager.get_status(task_id)
     return status
 
 class XarmJointsDict(BaseModel):
+    """Joint angle configuration for a single waypoint."""
+
     j1: float
     j2: float
     j3: float
@@ -79,6 +91,7 @@ class XarmJointsDict(BaseModel):
     j6: float
 
 class XarmMoveWithToolParams(BaseModel):
+    """Parameters for tool position adjustment."""
     x_offset: float = Field(
         ...,
         ge=-1000.0, le=1000.0,
@@ -115,6 +128,7 @@ class XarmMoveWithToolParams(BaseModel):
     )
 
 class XarmMoveWithPoseParams(BaseModel):
+    """Parameters for moving the manipulator to a saved pose."""
     pose_name: str = Field(
         "READY_SECTION_CENTER",
         description="Сhange the pose of the manipulator to a previously saved position",
@@ -138,6 +152,7 @@ class XarmMoveWithPoseParams(BaseModel):
     )
 
 class XarmMoveWithJointsParams(BaseModel):
+    """Parameters for moving the manipulator to specified joint angles."""
     j1: float = Field(
         ...,
         ge=-500.0, le=500.0,
@@ -192,6 +207,7 @@ class XarmMoveWithJointsParams(BaseModel):
     )
 
 class XarmMoveWithJointsDictParams(BaseModel):
+    """Parameters for a complex move defined by a list of joint dictionaries."""
     points: List[XarmJointsDict] = Field(
         ...,
         description="List of joints positions, each as a dict with keys 'j1'..'j6'",
@@ -218,30 +234,43 @@ class XarmMoveWithJointsDictParams(BaseModel):
     )
 
 class XarmCommandResponse(BaseModel):
+    """Response returned when a manipulator command finishes."""
+
     success: bool = Field(..., description="True if command completed successfully", example=True)
 
 class XarmAsyncResponse(BaseModel):
+    """Response for an asynchronous manipulator command."""
+
     success: bool = Field(..., example=True)
     task_id: str = Field(..., example="123e4567-e89b-12d3-a456-426614174000")
 
 class XarmStatusResponse(BaseModel):
-    alive: bool = Field(..., description="", example=True)
-    connected: bool = Field(..., description="", example=False)
-    state: int = Field(..., description="", example=0)
-    has_err_warn: bool = Field(..., description="", example=True)
-    has_error: bool = Field(..., description="", example=False)
-    has_warn: bool = Field(..., description="", example=True)
-    error_code: int = Field(..., description="", example=0)
+    """Status report returned by the manipulator controller."""
+
+    alive: bool = Field(..., description="True if controller heartbeat is present", example=True)
+    connected: bool = Field(..., description="True if robot is connected", example=False)
+    state: int = Field(..., description="Current controller state code", example=0)
+    has_err_warn: bool = Field(..., description="True if any warning or error exists", example=True)
+    has_error: bool = Field(..., description="True if an error is active", example=False)
+    has_warn: bool = Field(..., description="True if a warning is active", example=True)
+    error_code: int = Field(..., description="Active error code or 0", example=0)
 
 
 class XarmJointsPositionResponse(BaseModel):
-    joints: Optional[Any] = Field(..., description="", example={'j1': 0, 'j2': 0, 'j3': 0, 'j4': 0, 'j5': 0, 'j6': 0})
+    """Current joint positions of the manipulator."""
+
+    joints: Optional[Any] = Field(
+        ..., description="Dictionary of joint angles keyed by j1..j6",
+        example={'j1': 0, 'j2': 0, 'j3': 0, 'j4': 0, 'j5': 0, 'j6': 0}
+    )
 
 async def guarded_manipulator_command(func: Callable, *args, **kwargs) -> XarmCommandResponse:
+    """Execute manipulator command ensuring exclusive access."""
     async with manipulator_lock:
         return await _execute_manipulator_command(func, *args, **kwargs)
 
 async def _execute_manipulator_command(func: Callable, *args, **kwargs):
+    """Run a manipulator command in a thread pool and return its result."""
     try:
         result = await run_in_threadpool(func, *args, **kwargs)
         if hasattr(result, 'result') and hasattr(result, 'done'):
@@ -267,6 +296,7 @@ async def _execute_manipulator_command(func: Callable, *args, **kwargs):
     }
 )
 async def complex_move_with_joints_dict(params: XarmMoveWithJointsDictParams):
+    """Move the manipulator along a series of joint positions."""
     if manipulator_lock.locked():
         raise HTTPException(status_code=status.HTTP_423_LOCKED, detail="Manipulator is busy")
     try:
@@ -301,6 +331,7 @@ async def complex_move_with_joints_dict(params: XarmMoveWithJointsDictParams):
     }
 )
 async def change_joints(params: XarmMoveWithJointsParams):
+    """Move the manipulator to the given joint angles."""
     if manipulator_lock.locked():
         raise HTTPException(status_code=status.HTTP_423_LOCKED,detail="Manipulator is busy")
     try:
@@ -333,6 +364,7 @@ async def change_joints(params: XarmMoveWithJointsParams):
     }
 )
 async def change_pose(params: XarmMoveWithPoseParams):
+    """Move the manipulator to a named pose."""
     if manipulator_lock.locked():
         raise HTTPException(status_code=status.HTTP_423_LOCKED,detail="Manipulator is busy")
     try:
@@ -365,6 +397,7 @@ async def change_pose(params: XarmMoveWithPoseParams):
     }
 )
 async def change_tool_position(params: XarmMoveWithToolParams):
+    """Adjust tool position using provided offsets."""
     if manipulator_lock.locked():
         raise HTTPException(status_code=status.HTTP_423_LOCKED,detail="Manipulator is busy")
     try:
@@ -396,6 +429,7 @@ async def change_tool_position(params: XarmMoveWithToolParams):
     }
 )
 async def gripper_drop():
+    """Release the object currently held by the gripper."""
     if manipulator_lock.locked():
         raise HTTPException(
             status_code=status.HTTP_423_LOCKED,
@@ -429,6 +463,7 @@ async def gripper_drop():
     }
 )
 async def gripper_take():
+    """Close the gripper to take an object."""
     if manipulator_lock.locked():
         raise HTTPException(
             status_code=status.HTTP_423_LOCKED,
@@ -463,6 +498,7 @@ async def gripper_take():
     }
 )
 async def reset_faults():
+    """Reset error state on the manipulator controller."""
     if manipulator_lock.locked():
         raise HTTPException(
             status_code=status.HTTP_423_LOCKED,
@@ -503,6 +539,7 @@ async def reset_faults():
     }
 )
 async def get_manipulator_status():
+    """Return current manipulator status information."""
     if manipulator_lock.locked():
         raise HTTPException(
             status_code=status.HTTP_423_LOCKED,
@@ -542,6 +579,7 @@ async def get_manipulator_status():
     }
 )
 async def get_current_position():
+    """Fetch the current named pose and joint positions."""
     if manipulator_lock.locked():
         raise HTTPException(
             status_code=status.HTTP_423_LOCKED,
@@ -575,6 +613,7 @@ async def get_current_position():
     }
 )
 async def get_manipulator_joints_position():
+    """Return the current joint angles of the manipulator."""
     if manipulator_lock.locked():
         raise HTTPException(
             status_code=status.HTTP_423_LOCKED,

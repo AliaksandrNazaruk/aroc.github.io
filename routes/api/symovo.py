@@ -1,3 +1,14 @@
+"""Symovo AGV API.
+
+Routes in this module allow interaction with the autonomous guided vehicle:
+
+- Query current AGV state
+- Retrieve available maps
+- Start jobs by named position or explicit pose
+- Check pose reachability
+- Poll task status
+"""
+
 import asyncio
 import uuid
 from fastapi import APIRouter, HTTPException, status, Query
@@ -9,6 +20,8 @@ from core.state import symovo_car
 from core.logger import server_logger
 
 class MoveToPoseRequest(BaseModel):
+    """Parameters for moving the AGV to a specific pose."""
+
     x: float = Field(..., description="Target X position")
     y: float = Field(..., description="Target Y position")
     theta: float = Field(0, description="Target orientation (theta, in radians)")
@@ -84,6 +97,7 @@ def get_symovo_car_jobs():
     description="Starts a new job to move AGV to the specified named position."
 )
 def create_new_job(name: str = Query(..., description="Target position name")):
+    """Start a new job that moves the AGV to a named position."""
     server_logger.log_event("info", f"GET /api/symovo_car/new_job {name}")
     result = symovo_car.go_to_position(name, True, True)
     server_logger.log_event("info", f"Symovo new job started: {name}")
@@ -99,6 +113,7 @@ def create_new_job(name: str = Query(..., description="Target position name")):
     description="Returns a list of available maps for the AGV."
 )
 def get_maps():
+    """Return a list of maps available on the AGV."""
     server_logger.log_event("info", "GET /api/symovo_car/maps")
     maps = symovo_car.get_maps()
     if maps is None:
@@ -113,6 +128,7 @@ def get_maps():
     response_description="Result of the go_to_pose command."
 )
 def go_to_pose(req: MoveToPoseRequest):
+    """Send the AGV to an arbitrary pose."""
     server_logger.log_event("info", f"POST /api/symovo_car/go_to_pose {req}")
     result = symovo_car.move_to(req.x, req.y, req.theta, req.map_id, req.max_speed)
     if result is None:
@@ -127,6 +143,7 @@ def go_to_pose(req: MoveToPoseRequest):
     response_description="Reachability result."
 )
 def check_pose(req: MoveToPoseRequest):
+    """Check if the AGV can reach the specified pose."""
     server_logger.log_event("info", f"POST /api/symovo_car/check_pose {req}")
     result = symovo_car.check_reachability(req.x, req.y, req.theta, req.map_id)
     if result is None:
@@ -140,6 +157,7 @@ def check_pose(req: MoveToPoseRequest):
     description="Returns the status of a running task by its ID."
 )
 def task_status(task_id: str = Query(..., description="Task ID")):
+    """Get progress information for a running job."""
     server_logger.log_event("info", f"GET /api/symovo_car/task_status {task_id}")
     result = symovo_car.get_task_status(task_id)
     if result is None:
