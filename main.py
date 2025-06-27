@@ -1,3 +1,5 @@
+"""FastAPI application exposing robotics control API."""
+
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from contextlib import asynccontextmanager
@@ -45,14 +47,22 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(
     title="AE.01 API",
-    description="Prototype API for managing igus, xarm, symovo systems. Supports position control, speed control, error reset and device status monitoring.",
+    description=(
+        "Prototype API for managing Igus motor, xArm manipulator and Symovo AGV. "
+        "The service exposes endpoints for position control, speed settings, "
+        "error reset and status monitoring of all connected devices."
+    ),
     version="1.0.0",
+    contact={"name": "AE Robotics", "url": "https://example.com"},
+    license_info={"name": "MIT"},
+    docs_url="/docs",
+    redoc_url="/redoc",
     lifespan=lifespan,
     openapi_tags=[
         {
             "name": "Igus Motor",
             "description": (
-                "Igus Motor endpoints provide access to motor control features:\n"
+                "Endpoints for controlling the Igus lifting motor:\n"
                 "- Position control\n"
                 "- Speed and acceleration settings\n"
                 "- Homing/reference\n"
@@ -60,9 +70,27 @@ app = FastAPI(
                 "- Status monitoring\n"
                 "\n"
                 "Note: Only one command can be processed at a time; 423 Locked will be returned if busy."
-            )
-        }
-    ]
+            ),
+        },
+        {
+            "name": "xArm Manipulator",
+            "description": (
+                "Endpoints for the UFactory xArm 6 axis manipulator. "
+                "Provide motion control, gripper operations and status monitoring."
+            ),
+        },
+        {
+            "name": "Symovo AGV",
+            "description": (
+                "Endpoints for interacting with the Symovo autonomous guided vehicle (AGV). "
+                "Support fetching maps, starting jobs and monitoring state."
+            ),
+        },
+        {
+            "name": "misc",
+            "description": "Utility endpoints: serving static files, trajectories and helper functions.",
+        },
+    ],
 )
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
@@ -70,5 +98,4 @@ if __name__ == "__main__":
     import uvicorn
     server_logger.log_event("info", "Starting uvicorn server")
     uvicorn.run("main:app", host=web_server_host, port=web_server_port, reload=True)
-from fastapi import FastAPI
 
