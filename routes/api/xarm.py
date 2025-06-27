@@ -70,6 +70,7 @@ task_manager = TaskManager()
 class TaskStatusResponse(BaseModel):
     """Information about an asynchronous manipulator task."""
 
+
     status: str = Field(
         ..., description="Current state of the task", example="working"
     )
@@ -84,6 +85,7 @@ class TaskStatusResponse(BaseModel):
     summary="Get async task status",
     description="Return progress information for a previously started manipulator command.",
 )
+
 async def get_motor_task_status(task_id: str):
     """Return status information for a previously started async manipulator task."""
     status = task_manager.get_status(task_id)
@@ -297,6 +299,7 @@ class XarmJointsPositionResponse(BaseModel):
 async def guarded_manipulator_command(
     func: Callable, *args, **kwargs
 ) -> XarmCommandResponse:
+
     """Execute manipulator command ensuring exclusive access."""
     async with manipulator_lock:
         return await _execute_manipulator_command(func, *args, **kwargs)

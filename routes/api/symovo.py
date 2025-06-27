@@ -10,7 +10,6 @@ from collections import OrderedDict
 from core.state import symovo_car
 from core.logger import server_logger
 
-
 class AgvPose(BaseModel):
     """Pose of the AGV on a map."""
 
@@ -76,7 +75,6 @@ class GenericResult(BaseModel):
 
     status: str = Field(..., description="Operation status", example="ok")
     result: Any = Field(..., description="Returned result object")
-
 
 class MoveToPoseRequest(BaseModel):
     """Pose parameters used when commanding the AGV."""
@@ -164,6 +162,7 @@ def get_system_data() -> SymovoStateResponse:
     return SymovoStateResponse(**data)
 
 
+
 @router.get(
     "/jobs",
     response_model=List[Dict[str, Any]],
@@ -184,12 +183,16 @@ def get_symovo_car_jobs() -> List[Dict[str, Any]]:
     summary="Create new job by position name",
     description="Starts a new job to move AGV to the specified named position.",
 )
+
 def create_new_job(name: str = Query(..., description="Target position name")) -> NewJobResponse:
+
     """Start a new job that moves the AGV to a named position."""
     server_logger.log_event("info", f"GET /api/symovo_car/new_job {name}")
     result = symovo_car.go_to_position(name, True, True)
     server_logger.log_event("info", f"Symovo new job started: {name}")
+
     return NewJobResponse(status="ok", message=f"Going to position {name}", result=result)
+
 
 
 @router.get(
@@ -198,7 +201,9 @@ def create_new_job(name: str = Query(..., description="Target position name")) -
     summary="Get available maps",
     description="Returns a list of available maps for the AGV.",
 )
+
 def get_maps() -> List[str]:
+
     """Return a list of maps available on the AGV."""
     server_logger.log_event("info", "GET /api/symovo_car/maps")
     maps = symovo_car.get_maps()
@@ -215,7 +220,9 @@ def get_maps() -> List[str]:
     description="Send the AGV to an arbitrary pose on the specified map.",
     response_description="Result of the go_to_pose command.",
 )
+
 def go_to_pose(req: MoveToPoseRequest) -> GenericResult:
+
     """Send the AGV to an arbitrary pose."""
     server_logger.log_event("info", f"POST /api/symovo_car/go_to_pose {req}")
     result = symovo_car.move_to(req.x, req.y, req.theta, req.map_id, req.max_speed)
@@ -225,6 +232,7 @@ def go_to_pose(req: MoveToPoseRequest) -> GenericResult:
     return GenericResult(status="ok", result=result)
 
 
+
 @router.post(
     "/check_pose",
     response_model=GenericResult,
@@ -232,7 +240,9 @@ def go_to_pose(req: MoveToPoseRequest) -> GenericResult:
     description="Check if a given pose is reachable by the AGV.",
     response_description="Reachability result.",
 )
+
 def check_pose(req: MoveToPoseRequest) -> GenericResult:
+
     """Check if the AGV can reach the specified pose."""
     server_logger.log_event("info", f"POST /api/symovo_car/check_pose {req}")
     result = symovo_car.check_reachability(req.x, req.y, req.theta, req.map_id)
@@ -242,13 +252,16 @@ def check_pose(req: MoveToPoseRequest) -> GenericResult:
     return GenericResult(status="ok", result=result)
 
 
+
 @router.get(
     "/task_status",
     response_model=GenericResult,
     summary="Get status of a task",
     description="Returns the status of a running task by its ID.",
 )
+
 def task_status(task_id: str = Query(..., description="Task ID")) -> GenericResult:
+
     """Get progress information for a running job."""
     server_logger.log_event("info", f"GET /api/symovo_car/task_status {task_id}")
     result = symovo_car.get_task_status(task_id)
