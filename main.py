@@ -88,6 +88,7 @@ app = FastAPI(
             ),
         },
         {
+
             "name": "Robot AE.01",
             "description": (
                 "Composite operations that coordinate the Igus motor, xArm and"
@@ -95,6 +96,7 @@ app = FastAPI(
             ),
         },
         {
+
             "name": "misc",
             "description": "Utility endpoints: serving static files, trajectories and helper functions.",
         },
