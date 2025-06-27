@@ -11,10 +11,28 @@ import drivers.xarm_scripts.xarm_positions as xarm_positions
 router = APIRouter(prefix="/api/v1/robot", tags=["Robot AE.01"])
 
 class ProductLocation(BaseModel):
-    x: float
-    y: float
-    theta: float = 0
-    map_id: Optional[str] = None
+    """Coordinates of a product on the AGV map."""
+
+    x: float = Field(
+        ...,
+        description="X position in millimetres",
+        json_schema_extra={"example": 0.0},
+    )
+    y: float = Field(
+        ...,
+        description="Y position in millimetres",
+        json_schema_extra={"example": 0.0},
+    )
+    theta: float = Field(
+        0.0,
+        description="Orientation angle in radians",
+        json_schema_extra={"example": 0.0},
+    )
+    map_id: Optional[str] = Field(
+        None,
+        description="Map identifier used by the AGV",
+        json_schema_extra={"example": "factory_map"},
+    )
 
 
 class XarmMoveWithToolOffsets(BaseModel):
@@ -46,19 +64,61 @@ class DefaultMoveRequest(BaseModel):
     )
 
 class RobotStatusRequest(BaseModel):
-    alive: bool = Field(..., description="", example=True)
-    connected: bool = Field(..., description="", example=False)
-    state: int = Field(..., description="", example=0)
-    has_err_warn: bool = Field(..., description="", example=True)
-    has_error: bool = Field(..., description="", example=False)
-    has_warn: bool = Field(..., description="", example=True)
-    error_code: int = Field(..., description="", example=0)
+    alive: bool = Field(
+        ...,
+        description="Service process responding",
+        json_schema_extra={"example": True},
+    )
+    connected: bool = Field(
+        ...,
+        description="Robot controller connection state",
+        json_schema_extra={"example": False},
+    )
+    state: int = Field(
+        ...,
+        description="Current raw state code reported by the robot",
+        json_schema_extra={"example": 0},
+    )
+    has_err_warn: bool = Field(
+        ...,
+        description="True if the robot has warnings or errors",
+        json_schema_extra={"example": True},
+    )
+    has_error: bool = Field(
+        ...,
+        description="True if a fatal error is present",
+        json_schema_extra={"example": False},
+    )
+    has_warn: bool = Field(
+        ...,
+        description="True if warnings are present",
+        json_schema_extra={"example": True},
+    )
+    error_code: int = Field(
+        ...,
+        description="Numeric error code, 0 if no error",
+        json_schema_extra={"example": 0},
+    )
 
 class RobotMoveRequest(BaseModel):
-    product_id: str
-    location: ProductLocation
-    lift_position: Optional[int] = None
-    manipulator_coords: Optional[XarmMoveWithToolOffsets] = None
+    product_id: str = Field(
+        ...,
+        description="Identifier of the product to handle",
+        json_schema_extra={"example": "PRODUCT_1"},
+    )
+    location: ProductLocation = Field(
+        ...,
+        description="Target location of the product",
+    )
+    lift_position: Optional[int] = Field(
+        None,
+        description="Lift position for the Igus motor",
+        json_schema_extra={"example": 30000},
+    )
+    manipulator_coords: Optional[XarmMoveWithToolOffsets] = Field(
+        None,
+        description="Tool offsets for the xArm manipulator",
+    )
     velocity: float = Field(
         ...,
         ge=1, le=100.0,
@@ -78,6 +138,7 @@ class RobotMoveRequest(BaseModel):
 
 @router.post("/move/to_product", response_model=Dict[str, Any])
 async def move_to_product(params: RobotMoveRequest):
+    """Move a product to the specified location using all subsystems."""
     server_logger.log_event("info", f"POST /api/system/move_to_product {params}")
 
     # Безопасно устанавливаем скорость
@@ -135,7 +196,7 @@ async def move_to_product(params: RobotMoveRequest):
 
 @router.post("/move/to_box_1", response_model=Dict[str, Any])
 async def move_to_box_1(params: DefaultMoveRequest):
-    """Move robot to Box 1 position."""
+    """Move the robot to the preconfigured Box 1 drop-off position."""
     first_pos = 40000
     second_pos = 30000
     try:
@@ -172,7 +233,7 @@ async def move_to_box_1(params: DefaultMoveRequest):
 
 @router.post("/move/to_box_2", response_model=Dict[str, Any])
 async def move_to_box_2(params: DefaultMoveRequest):
-    """Move robot to Box 2 position."""
+    """Move the robot to the Box 2 drop-off position."""
     first_pos = 40000
     second_pos = 30000
     try:
@@ -209,6 +270,7 @@ async def move_to_box_2(params: DefaultMoveRequest):
 
 @router.post("/move/to_transport_position", response_model=Dict[str, Any])
 async def transport_position(params: DefaultMoveRequest):
+    """Move the robot into its transport (stowed) position."""
     try:
         async with igus_client as _igus_client:
             igus_result = await _igus_client.move_to_position(20000,params.velocity,params.velocity,True)
@@ -236,6 +298,7 @@ async def transport_position(params: DefaultMoveRequest):
         return False
 
 async def changePosition(client, position, speed, wait=True, reset_faults=False):
+    """Move the xArm through ready poses to a target position."""
     try:
         robot_result = await client.complex_move_with_joints_dict(
             points=[xarm_positions.poses["READY_STEP_1"], xarm_positions.poses["READY_STEP_2"], position],
@@ -265,7 +328,7 @@ async def changePosition(client, position, speed, wait=True, reset_faults=False)
     }
 )
 async def check_devices_ready() -> bool:
-    """Ensure XArm, Igus and AGV are operational before running a script."""
+    """Return ``True`` if the xArm, Igus lift and AGV are all operational."""
 
     xarm_state: Dict[str, Any] = {}
     igus_state: Dict[str, Any] = {}

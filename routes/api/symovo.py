@@ -161,8 +161,6 @@ def get_system_data() -> SymovoStateResponse:
     server_logger.log_event("debug", "Symovo data fetched")
     return SymovoStateResponse(**data)
 
-
-
 @router.get(
     "/jobs",
     response_model=List[Dict[str, Any]],
@@ -192,8 +190,6 @@ def create_new_job(name: str = Query(..., description="Target position name")) -
     server_logger.log_event("info", f"Symovo new job started: {name}")
 
     return NewJobResponse(status="ok", message=f"Going to position {name}", result=result)
-
-
 
 @router.get(
     "/maps",
@@ -230,8 +226,6 @@ def go_to_pose(req: MoveToPoseRequest) -> GenericResult:
         raise HTTPException(status_code=500, detail="Failed to send move command")
     server_logger.log_event("info", "Symovo go_to_pose executed")
     return GenericResult(status="ok", result=result)
-
-
 
 @router.post(
     "/check_pose",

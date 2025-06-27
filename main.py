@@ -28,12 +28,13 @@ async def lifespan(app: FastAPI):
     init_trajectory_table()
     init_regals_table()
 
-    from routes.api import igus, symovo, xarm, system
+    from routes.api import igus, symovo, xarm, system, robot
     from routes.websocket import ws
     app.include_router(igus.router)
     app.include_router(symovo.router)
     app.include_router(xarm.router)
     app.include_router(system.router)
+    app.include_router(robot.router)
     app.include_router(ws.router)
     app.include_router(misc.router)
 
@@ -87,6 +88,15 @@ app = FastAPI(
             ),
         },
         {
+
+            "name": "Robot AE.01",
+            "description": (
+                "Composite operations that coordinate the Igus motor, xArm and"
+                " Symovo AGV to accomplish high-level tasks."
+            ),
+        },
+        {
+
             "name": "misc",
             "description": "Utility endpoints: serving static files, trajectories and helper functions.",
         },

@@ -141,4 +141,3 @@ def send_command(data: Dict[str, Any]) -> Dict[str, Any]:
 def echo(data: Dict[str, Any]) -> Dict[str, Any]:
     """Echo back received data"""
     return {"received": data}
-

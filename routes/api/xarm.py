@@ -70,7 +70,6 @@ task_manager = TaskManager()
 class TaskStatusResponse(BaseModel):
     """Information about an asynchronous manipulator task."""
 
-
     status: str = Field(
         ..., description="Current state of the task", example="working"
     )
