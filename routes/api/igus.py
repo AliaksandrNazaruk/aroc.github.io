@@ -18,24 +18,26 @@ from core.logger import server_logger
 from typing import Union
 from collections import OrderedDict
 
-router = APIRouter(
-    prefix="/api/v1/igus",
-    tags=["Igus Motor"]
-)
+router = APIRouter(prefix="/api/v1/igus", tags=["Igus Motor"])
 
+# Ensures that only one motor command executes at a time
 motor_lock = asyncio.Lock()
 
+
 class TaskManager:
+    """Utility for tracking asynchronous motor tasks."""
+
     def __init__(self, max_tasks: int = 100):
         self.tasks: "OrderedDict[str, dict]" = OrderedDict()
         self.max_tasks = max_tasks
 
     def create_task(self, coro):
+        """Register and start an asynchronous task."""
         task_id = str(uuid.uuid4())
         loop = asyncio.get_event_loop()
         task = loop.create_task(coro)
         self.tasks[task_id] = {
-            "status": "working",  # задача запущена
+            "status": "working",  # task started
             "result": None,
             "task": task,
         }
@@ -51,25 +53,29 @@ class TaskManager:
 
         task.add_done_callback(_on_task_done)
 
-        # Ограничиваем размер очереди
+        # Limit task queue size
         while len(self.tasks) > self.max_tasks:
             self.tasks.popitem(last=False)
         return task_id
 
     def get_status(self, task_id):
+        """Return information about an async task."""
         if task_id not in self.tasks:
             return {"status": "not_found"}
         task_info = self.tasks[task_id]
         return {
             "status": task_info["status"],
-            "result": task_info["result"]
+            "result": task_info["result"],
         }
 
+
 task_manager = TaskManager()
+
 
 class TaskStatusResponse(BaseModel):
     status: str
     result: Optional[Any] = None
+
 
 @router.get("/motor/task_status/{task_id}", response_model=TaskStatusResponse)
 async def get_motor_task_status(task_id: str):
@@ -77,65 +83,83 @@ async def get_motor_task_status(task_id: str):
     status = task_manager.get_status(task_id)
     return status
 
+
 class MotorMoveParams(BaseModel):
     position: int = Field(
         ...,
-        ge=0, le=120_000,
+        ge=0,
+        le=120_000,
         description="Target position in encoder units (0..120000)",
-        json_schema_extra={"example": 5000}
+        json_schema_extra={"example": 5000},
     )
     velocity: int = Field(
         5000,
-        ge=0, le=10_000,
+        ge=0,
+        le=10_000,
         description="Motion velocity (0..10000)",
-        json_schema_extra={"example": 5000}
+        json_schema_extra={"example": 5000},
     )
     acceleration: int = Field(
         5000,
-        ge=0, le=10_000,
+        ge=0,
+        le=10_000,
         description="Motion acceleration (0..10000)",
-        json_schema_extra={"example": 5000}
+        json_schema_extra={"example": 5000},
     )
     blocking: bool = Field(
         True,
         description="Wait until move is complete (true: wait for completion before returning response, false: return immediately)",
-        json_schema_extra={"example": True}
+        json_schema_extra={"example": True},
     )
 
+
 class MotorCommandResponse(BaseModel):
-    success: bool = Field(..., description="True if command completed successfully", example=True)
+    success: bool = Field(
+        ..., description="True if command completed successfully", example=True
+    )
+
 
 class MotorAsyncResponse(BaseModel):
     success: bool = Field(..., example=True)
     task_id: str = Field(..., example="123e4567-e89b-12d3-a456-426614174000")
 
+
 class MotorStatusResponse(BaseModel):
-    status: int = Field(..., description="Status word of the motor controller", example=8192)
+    status: int = Field(
+        ..., description="Status word of the motor controller", example=8192
+    )
     homing: bool = Field(..., description="True if motor is homed", example=True)
     error: bool = Field(..., description="True if error is present", example=False)
     connected: bool = Field(..., description="True if motor is connected", example=True)
-    position: int = Field(..., description="Current position in encoder units", example=10000)
+    position: int = Field(
+        ..., description="Current position in encoder units", example=10000
+    )
 
-async def guarded_motor_command(func: Callable, *args, **kwargs) -> MotorCommandResponse:
+async def guarded_motor_command(
+    func: Callable, *args, **kwargs
+) -> MotorCommandResponse:
+
     """Execute a motor command ensuring exclusive access to the device."""
     if motor_lock.locked():
-        raise HTTPException(
-            status_code=status.HTTP_423_LOCKED,
-            detail="Motor is busy"
-        )
+        raise HTTPException(status_code=status.HTTP_423_LOCKED, detail="Motor is busy")
     async with motor_lock:
         return await _execute_motor_command(func, *args, **kwargs)
+
 
 async def _execute_motor_command(func: Callable, *args, **kwargs):
     """Run a potentially blocking motor command in a thread pool."""
     try:
         result = await run_in_threadpool(func, *args, **kwargs)
-        if hasattr(result, 'result') and hasattr(result, 'done'):
-            result = result.result(timeout=10)  # или без timeout
+        if hasattr(result, "result") and hasattr(result, "done"):
+            # unwrap concurrent future if returned
+            result = result.result(timeout=10)
         return result
     except Exception as e:
         server_logger.log_event("error", f"{func.__name__} failed: {e}")
-        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE,detail=str(e))
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=str(e)
+        )
+
 
 @router.post(
     "/motor/move",
@@ -158,28 +182,44 @@ async def _execute_motor_command(func: Callable, *args, **kwargs):
         423: {"description": "Motor is busy"},
         503: {"description": "Motor error or hardware fault"},
         422: {"description": "Validation error"},
-    }
+    },
 )
 async def move_motor(params: MotorMoveParams):
     """Move the Igus motor to a specified absolute position."""
     from core.state import igus_motor
+
     if motor_lock.locked():
-        raise HTTPException(
-            status_code=status.HTTP_423_LOCKED,
-            detail="Motor is busy"
-        )
+        raise HTTPException(status_code=status.HTTP_423_LOCKED, detail="Motor is busy")
     try:
         if params.blocking:
-            response = await guarded_motor_command(igus_motor.move_to_position,target_position=params.position,velocity=params.velocity,acceleration=params.acceleration,blocking=True,)
+            response = await guarded_motor_command(
+                igus_motor.move_to_position,
+                target_position=params.position,
+                velocity=params.velocity,
+                acceleration=params.acceleration,
+                blocking=True,
+            )
             return MotorCommandResponse(success=response)
         else:
+
             async def async_move():
-                return await guarded_motor_command(igus_motor.move_to_position,target_position=params.position,velocity=params.velocity,acceleration=params.acceleration,blocking=True,)
+                return await guarded_motor_command(
+                    igus_motor.move_to_position,
+                    target_position=params.position,
+                    velocity=params.velocity,
+                    acceleration=params.acceleration,
+                    blocking=True,
+                )
+
             task_id = task_manager.create_task(async_move())
             return MotorAsyncResponse(success=True, task_id=task_id)
     except Exception as e:
-        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE,detail=f"Motor fault reset failed: {str(e)}")
-    
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=f"Motor fault reset failed: {str(e)}",
+        )
+
+
 @router.post(
     "/motor/reference",
     response_model=Union[MotorCommandResponse, MotorAsyncResponse],
@@ -194,27 +234,31 @@ async def move_motor(params: MotorMoveParams):
         200: {"description": "Success (see returned field: success or task_id)"},
         423: {"description": "Motor is busy"},
         503: {"description": "Motor error or hardware fault"},
-    }
+    },
 )
 async def reference_motor(blocking: bool = True):
     """Run the homing (reference) procedure for the Igus motor."""
     from core.state import igus_motor
+
     if motor_lock.locked():
-        raise HTTPException(
-            status_code=status.HTTP_423_LOCKED,
-            detail="Motor is busy"
-        )
+        raise HTTPException(status_code=status.HTTP_423_LOCKED, detail="Motor is busy")
     try:
         if blocking:
             response = await guarded_motor_command(igus_motor.home)
             return MotorCommandResponse(success=response)
         else:
+
             async def async_ref():
                 return await guarded_motor_command(igus_motor.home)
+
             task_id = task_manager.create_task(async_ref())
             return MotorAsyncResponse(success=True, task_id=task_id)
     except Exception as e:
-        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE,detail=f"Motor fault reset failed: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=f"Motor fault reset failed: {str(e)}",
+        )
+
 
 @router.post(
     "/motor/fault_reset",
@@ -230,27 +274,31 @@ async def reference_motor(blocking: bool = True):
         200: {"description": "Success (see returned field: success or task_id)"},
         423: {"description": "Motor is busy"},
         503: {"description": "Motor error or hardware fault"},
-    }
+    },
 )
 async def reset_faults(blocking: bool = True):
     """Reset fault state on the Igus motor controller."""
     from core.state import igus_motor
+
     if motor_lock.locked():
-        raise HTTPException(
-            status_code=status.HTTP_423_LOCKED,
-            detail="Motor is busy"
-        )
+        raise HTTPException(status_code=status.HTTP_423_LOCKED, detail="Motor is busy")
     try:
         if blocking:
             response = await guarded_motor_command(igus_motor.fault_reset)
             return MotorCommandResponse(success=response)
         else:
+
             async def async_ref():
                 return await guarded_motor_command(igus_motor.fault_reset)
+
             task_id = task_manager.create_task(async_ref())
             return MotorAsyncResponse(success=True, task_id=task_id)
     except Exception as e:
-        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE,detail=f"Motor fault reset failed: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=f"Motor fault reset failed: {str(e)}",
+        )
+
 
 @router.get(
     "/motor/status",
@@ -265,22 +313,20 @@ async def reset_faults(blocking: bool = True):
         200: {"description": "Status retrieved"},
         423: {"description": "Motor is busy"},
         503: {"description": "Error retrieving motor status"},
-    }
+    },
 )
 async def get_motor_status() -> MotorStatusResponse:
     """Retrieve current motor controller status information."""
     from core.state import igus_motor
+
     if motor_lock.locked():
-        raise HTTPException(
-            status_code=status.HTTP_423_LOCKED,
-            detail="Motor is busy"
-        )
+        raise HTTPException(status_code=status.HTTP_423_LOCKED, detail="Motor is busy")
     try:
         result = await run_in_threadpool(igus_motor.get_status)
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail=f"Failed to get motor status: {str(e)}"
+            detail=f"Failed to get motor status: {str(e)}",
         )
     return MotorStatusResponse(
         status=result["statusword"],
@@ -290,14 +336,14 @@ async def get_motor_status() -> MotorStatusResponse:
         position=result["position"],
     )
 
+
 @router.get(
     "/health",
     summary="Check API health",
-    description="Healthcheck endpoint that returns a simple status."
+    description="Healthcheck endpoint that returns a simple status.",
 )
 async def healthcheck():
     """
     Healthcheck endpoint.
     """
     return {"status": "ok"}
-

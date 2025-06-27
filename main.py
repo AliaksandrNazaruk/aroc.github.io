@@ -1,3 +1,5 @@
+"""FastAPI application exposing robotics control API."""
+
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from contextlib import asynccontextmanager
@@ -51,6 +53,10 @@ app = FastAPI(
         "error reset and status monitoring of all connected devices."
     ),
     version="1.0.0",
+    contact={"name": "AE Robotics", "url": "https://example.com"},
+    license_info={"name": "MIT"},
+    docs_url="/docs",
+    redoc_url="/redoc",
     lifespan=lifespan,
     openapi_tags=[
         {

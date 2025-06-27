@@ -10,12 +10,36 @@ from collections import OrderedDict
 from core.state import symovo_car
 from core.logger import server_logger
 
+
 class MoveToPoseRequest(BaseModel):
-    x: float = Field(..., description="Target X position")
-    y: float = Field(..., description="Target Y position")
-    theta: float = Field(0, description="Target orientation (theta, in radians)")
-    map_id: Optional[str] = Field(None, description="Target map ID (optional)")
-    max_speed: Optional[float] = Field(None, description="Maximum speed (optional, m/s)")
+    """Pose parameters used when commanding the AGV."""
+
+    x: float = Field(
+        ...,
+        description="Target X position in meters",
+        json_schema_extra={"example": 1.0},
+    )
+    y: float = Field(
+        ...,
+        description="Target Y position in meters",
+        json_schema_extra={"example": 2.0},
+    )
+    theta: float = Field(
+        0,
+        description="Target orientation in radians",
+        json_schema_extra={"example": 0.0},
+    )
+    map_id: Optional[str] = Field(
+        None,
+        description="Target map identifier",
+        json_schema_extra={"example": "warehouse"},
+    )
+    max_speed: Optional[float] = Field(
+        None,
+        description="Maximum travel speed in m/s",
+        json_schema_extra={"example": 0.5},
+    )
+
 
 router = APIRouter(
     prefix="/api/v1/symovo_car",
@@ -27,15 +51,18 @@ router = APIRouter(
 
 symovo_car_lock = asyncio.Lock()
 
+
 @router.get(
     "/data",
     summary="Get current Symovo AGV state",
-    description="Returns all current state information about the Symovo AGV."
+    description="Returns all current state information about the Symovo AGV.",
 )
 def get_system_data():
     """Get current Symovo car state."""
     server_logger.log_event("debug", "GET /api/symovo_car/data")
-    last_update_str = str(symovo_car.last_update_time) if symovo_car.last_update_time else None
+    last_update_str = (
+        str(symovo_car.last_update_time) if symovo_car.last_update_time else None
+    )
     data = {
         "online": symovo_car.online,
         "last_update_time": last_update_str,
@@ -45,12 +72,12 @@ def get_system_data():
             "x": symovo_car.pose_x,
             "y": symovo_car.pose_y,
             "theta": symovo_car.pose_theta,
-            "map_id": symovo_car.pose_map_id
+            "map_id": symovo_car.pose_map_id,
         },
         "velocity": {
             "x": symovo_car.velocity_x,
             "y": symovo_car.velocity_y,
-            "theta": symovo_car.velocity_theta
+            "theta": symovo_car.velocity_theta,
         },
         "state": symovo_car.state,
         "battery_level": symovo_car.battery_level,
@@ -63,15 +90,16 @@ def get_system_data():
         "enabled": symovo_car.enabled,
         "last_update": symovo_car.last_update,
         "attributes": symovo_car.attributes,
-        "planned_path_edges": symovo_car.planned_path_edges
+        "planned_path_edges": symovo_car.planned_path_edges,
     }
     server_logger.log_event("debug", "Symovo data fetched")
     return data
 
+
 @router.get(
     "/jobs",
     summary="Get active jobs",
-    description="Get a list of all current jobs on Symovo AGV."
+    description="Get a list of all current jobs on Symovo AGV.",
 )
 def get_symovo_car_jobs():
     """Get current Symovo car jobs."""
@@ -80,26 +108,24 @@ def get_symovo_car_jobs():
     server_logger.log_event("info", "Symovo jobs fetched")
     return jobs
 
+
 @router.get(
     "/new_job",
     summary="Create new job by position name",
-    description="Starts a new job to move AGV to the specified named position."
+    description="Starts a new job to move AGV to the specified named position.",
 )
 def create_new_job(name: str = Query(..., description="Target position name")):
     """Start a new job that moves the AGV to a named position."""
     server_logger.log_event("info", f"GET /api/symovo_car/new_job {name}")
     result = symovo_car.go_to_position(name, True, True)
     server_logger.log_event("info", f"Symovo new job started: {name}")
-    return {
-        "status": "ok",
-        "message": f"Going to position {name}",
-        "result": result
-    }
+    return {"status": "ok", "message": f"Going to position {name}", "result": result}
+
 
 @router.get(
     "/maps",
     summary="Get available maps",
-    description="Returns a list of available maps for the AGV."
+    description="Returns a list of available maps for the AGV.",
 )
 def get_maps():
     """Return a list of maps available on the AGV."""
@@ -110,11 +136,12 @@ def get_maps():
     server_logger.log_event("info", "Symovo maps fetched")
     return maps
 
+
 @router.post(
     "/go_to_pose",
     summary="Send AGV to pose",
     description="Send the AGV to an arbitrary pose on the specified map.",
-    response_description="Result of the go_to_pose command."
+    response_description="Result of the go_to_pose command.",
 )
 def go_to_pose(req: MoveToPoseRequest):
     """Send the AGV to an arbitrary pose."""
@@ -125,11 +152,12 @@ def go_to_pose(req: MoveToPoseRequest):
     server_logger.log_event("info", "Symovo go_to_pose executed")
     return {"status": "ok", "result": result}
 
+
 @router.post(
     "/check_pose",
     summary="Check pose reachability",
     description="Check if a given pose is reachable by the AGV.",
-    response_description="Reachability result."
+    response_description="Reachability result.",
 )
 def check_pose(req: MoveToPoseRequest):
     """Check if the AGV can reach the specified pose."""
@@ -140,10 +168,11 @@ def check_pose(req: MoveToPoseRequest):
     server_logger.log_event("info", "Symovo pose checked")
     return result
 
+
 @router.get(
     "/task_status",
     summary="Get status of a task",
-    description="Returns the status of a running task by its ID."
+    description="Returns the status of a running task by its ID.",
 )
 def task_status(task_id: str = Query(..., description="Task ID")):
     """Get progress information for a running job."""

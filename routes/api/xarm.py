@@ -13,24 +13,26 @@ from typing import List, Dict
 from collections import OrderedDict
 
 
-router = APIRouter(
-    prefix="/api/v1/xarm",
-    tags=["xArm Manipulator"]
-)
+router = APIRouter(prefix="/api/v1/xarm", tags=["xArm Manipulator"])
 
+# Ensures that only one manipulator command executes at a time
 manipulator_lock = asyncio.Lock()
 
+
 class TaskManager:
+    """Utility for tracking asynchronous manipulator tasks."""
+
     def __init__(self, max_tasks: int = 100):
         self.tasks: "OrderedDict[str, dict]" = OrderedDict()
         self.max_tasks = max_tasks
 
     def create_task(self, coro):
+        """Register and start an asynchronous task."""
         task_id = str(uuid.uuid4())
         loop = asyncio.get_event_loop()
         task = loop.create_task(coro)
         self.tasks[task_id] = {
-            "status": "working",  # задача запущена
+            "status": "working",  # task started
             "result": None,
             "task": task,
         }
@@ -46,31 +48,36 @@ class TaskManager:
 
         task.add_done_callback(_on_task_done)
 
-        # Ограничиваем размер очереди
+        # Limit task queue size
         while len(self.tasks) > self.max_tasks:
             self.tasks.popitem(last=False)
         return task_id
 
     def get_status(self, task_id):
+        """Return information about an async task."""
         if task_id not in self.tasks:
             return {"status": "not_found"}
         task_info = self.tasks[task_id]
         return {
             "status": task_info["status"],
-            "result": task_info["result"]
+            "result": task_info["result"],
         }
 
+
 task_manager = TaskManager()
+
 
 class TaskStatusResponse(BaseModel):
     status: str
     result: Optional[Any] = None
+
 
 @router.get("/manipulator/task_status/{task_id}", response_model=TaskStatusResponse)
 async def get_motor_task_status(task_id: str):
     """Return status information for a previously started async manipulator task."""
     status = task_manager.get_status(task_id)
     return status
+
 
 class XarmJointsDict(BaseModel):
     j1: float
@@ -80,118 +87,134 @@ class XarmJointsDict(BaseModel):
     j5: float
     j6: float
 
+
 class XarmMoveWithToolParams(BaseModel):
     x_offset: float = Field(
         ...,
-        ge=-1000.0, le=1000.0,
+        ge=-1000.0,
+        le=1000.0,
         description="X offset for Tool in mm (-1000..1000.0)",
-        json_schema_extra={"example": 0}
+        json_schema_extra={"example": 0},
     )
     y_offset: float = Field(
         ...,
-        ge=-1000.0, le=1000.0,
+        ge=-1000.0,
+        le=1000.0,
         description="Y offset for Tool in mm (-1000..1000.0)",
-        json_schema_extra={"example": 0}
+        json_schema_extra={"example": 0},
     )
     z_offset: float = Field(
         ...,
-        ge=-1000.0, le=1000.0,
+        ge=-1000.0,
+        le=1000.0,
         description="Z offset for Tool in mm (-1000..1000.0)",
-        json_schema_extra={"example": 0}
+        json_schema_extra={"example": 0},
     )
     velocity: float = Field(
         ...,
-        ge=0, le=100.0,
+        ge=0,
+        le=100.0,
         description="Manipulator speed in percents (0..100.0)",
-        json_schema_extra={"example": 0}
+        json_schema_extra={"example": 0},
     )
     reset_faults: bool = Field(
         False,
         description="Resetting errors and reinitializing the manipulator before movement, the task execution will last 3-5 seconds longer)",
-        json_schema_extra={"example": False}
+        json_schema_extra={"example": False},
     )
     blocking: bool = Field(
         True,
         description="Wait until move is complete (true: wait for completion before returning response, false: return immediately)",
-        json_schema_extra={"example": True}
+        json_schema_extra={"example": True},
     )
+
 
 class XarmMoveWithPoseParams(BaseModel):
     pose_name: str = Field(
         "READY_SECTION_CENTER",
         description="Сhange the pose of the manipulator to a previously saved position",
-        json_schema_extra={"example": "READY_SECTION_CENTER"}
+        json_schema_extra={"example": "READY_SECTION_CENTER"},
     )
     velocity: float = Field(
         ...,
-        ge=0, le=100.0,
+        ge=0,
+        le=100.0,
         description="Manipulator speed in percents (0..100.0)",
-        json_schema_extra={"example": 0}
+        json_schema_extra={"example": 0},
     )
     reset_faults: bool = Field(
         False,
         description="Resetting errors and reinitializing the manipulator before movement, the task execution will last 3-5 seconds longer)",
-        json_schema_extra={"example": False}
+        json_schema_extra={"example": False},
     )
     blocking: bool = Field(
         True,
         description="Wait until move is complete (true: wait for completion before returning response, false: return immediately)",
-        json_schema_extra={"example": True}
+        json_schema_extra={"example": True},
     )
+
 
 class XarmMoveWithJointsParams(BaseModel):
     j1: float = Field(
         ...,
-        ge=-500.0, le=500.0,
+        ge=-500.0,
+        le=500.0,
         description="Manipulator j1 position (-500.0..500.0)",
-        json_schema_extra={"example": 0}
+        json_schema_extra={"example": 0},
     )
     j2: float = Field(
         ...,
-        ge=-500.0, le=500.0,
+        ge=-500.0,
+        le=500.0,
         description="Manipulator j2 position (-500.0..500.0)",
-        json_schema_extra={"example": 0}
+        json_schema_extra={"example": 0},
     )
     j3: float = Field(
         ...,
-        ge=-500.0, le=500.0,
+        ge=-500.0,
+        le=500.0,
         description="Manipulator j3 position (-500.0..500.0)",
-        json_schema_extra={"example": 0}
+        json_schema_extra={"example": 0},
     )
     j4: float = Field(
         ...,
-        ge=-500.0, le=500.0,
+        ge=-500.0,
+        le=500.0,
         description="Manipulator j4 position (-500.0..500.0)",
-        json_schema_extra={"example": 0}
+        json_schema_extra={"example": 0},
     )
     j5: float = Field(
         ...,
-        ge=-500.0, le=500.0,
+        ge=-500.0,
+        le=500.0,
         description="Manipulator j5 position (-500.0..500.0)",
-        json_schema_extra={"example": 0}
+        json_schema_extra={"example": 0},
     )
     j6: float = Field(
         ...,
-        ge=-500.0, le=500.0,
+        ge=-500.0,
+        le=500.0,
         description="Manipulator j6 position (-500.0..500.0)",
-        json_schema_extra={"example": 0}
+        json_schema_extra={"example": 0},
     )
     velocity: float = Field(
         ...,
-        ge=0, le=100.0,
+        ge=0,
+        le=100.0,
         description="Manipulator speed in percents (0..100.0)",
-        json_schema_extra={"example": 0}
+        json_schema_extra={"example": 0},
     )
     reset_faults: bool = Field(
         False,
         description="Resetting errors and reinitializing the manipulator before movement, the task execution will last 3-5 seconds longer)",
-        json_schema_extra={"example": False}
+        json_schema_extra={"example": False},
     )
     blocking: bool = Field(
         True,
         description="Wait until move is complete (true: wait for completion before returning response, false: return immediately)",
-        json_schema_extra={"example": True}
+        json_schema_extra={"example": True},
     )
+
 
 class XarmMoveWithJointsDictParams(BaseModel):
     points: List[XarmJointsDict] = Field(
@@ -200,60 +223,88 @@ class XarmMoveWithJointsDictParams(BaseModel):
         example=[
             {"j1": 0, "j2": 10, "j3": 20, "j4": 30, "j5": 40, "j6": 50},
             {"j1": 10, "j2": 20, "j3": 30, "j4": 40, "j5": 50, "j6": 60},
-        ]
+        ],
     )
     velocity: float = Field(
         ...,
-        ge=0, le=100.0,
+        ge=0,
+        le=100.0,
         description="Manipulator speed in percents (0..100.0)",
         example=50.0,
     )
     reset_faults: bool = Field(
         False,
         description="Resetting errors and reinitializing the manipulator before movement, the task execution will last 3-5 seconds longer)",
-        example=False
+        example=False,
     )
     blocking: bool = Field(
         True,
         description="Wait until move is complete (true: wait for completion before returning response, false: return immediately)",
-        example=True
+        example=True,
     )
 
+
 class XarmCommandResponse(BaseModel):
-    success: bool = Field(..., description="True if command completed successfully", example=True)
+    success: bool = Field(
+        ..., description="True if command completed successfully", example=True
+    )
+
 
 class XarmAsyncResponse(BaseModel):
     success: bool = Field(..., example=True)
     task_id: str = Field(..., example="123e4567-e89b-12d3-a456-426614174000")
 
+
 class XarmStatusResponse(BaseModel):
-    alive: bool = Field(..., description="", example=True)
-    connected: bool = Field(..., description="", example=False)
-    state: int = Field(..., description="", example=0)
-    has_err_warn: bool = Field(..., description="", example=True)
-    has_error: bool = Field(..., description="", example=False)
-    has_warn: bool = Field(..., description="", example=True)
-    error_code: int = Field(..., description="", example=0)
+    """Status information returned by the manipulator controller."""
+
+    alive: bool = Field(..., description="Controller heartbeat flag", example=True)
+    connected: bool = Field(..., description="True if xArm is connected", example=False)
+    state: int = Field(..., description="Internal controller state code", example=0)
+    has_err_warn: bool = Field(
+        ..., description="True if warnings or errors present", example=True
+    )
+    has_error: bool = Field(
+        ..., description="True if an error is active", example=False
+    )
+    has_warn: bool = Field(
+        ..., description="True if warnings are present", example=True
+    )
+    error_code: int = Field(..., description="Current error code", example=0)
 
 
 class XarmJointsPositionResponse(BaseModel):
-    joints: Optional[Any] = Field(..., description="", example={'j1': 0, 'j2': 0, 'j3': 0, 'j4': 0, 'j5': 0, 'j6': 0})
+    """Current joint angles reported by the manipulator."""
 
-async def guarded_manipulator_command(func: Callable, *args, **kwargs) -> XarmCommandResponse:
+    joints: Optional[Any] = Field(
+        ...,
+        description="Dictionary of joint angles in degrees",
+        example={"j1": 0, "j2": 0, "j3": 0, "j4": 0, "j5": 0, "j6": 0},
+    )
+
+
+async def guarded_manipulator_command(
+    func: Callable, *args, **kwargs
+) -> XarmCommandResponse:
+
     """Execute manipulator command ensuring exclusive access."""
     async with manipulator_lock:
         return await _execute_manipulator_command(func, *args, **kwargs)
+
 
 async def _execute_manipulator_command(func: Callable, *args, **kwargs):
     """Run a manipulator command in a thread pool and return its result."""
     try:
         result = await run_in_threadpool(func, *args, **kwargs)
-        if hasattr(result, 'result') and hasattr(result, 'done'):
+        if hasattr(result, "result") and hasattr(result, "done"):
             result = result.result(timeout=10)
         return result
     except Exception as e:
         server_logger.log_event("error", f"{func.__name__} failed: {e}")
-        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE,detail=str(e))
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=str(e)
+        )
+
 
 @router.post(
     "/manipulator/complex_move/with_joints_dict",
@@ -268,25 +319,36 @@ async def _execute_manipulator_command(func: Callable, *args, **kwargs):
         200: {"description": "Success (see returned field: success or task_id)"},
         423: {"description": "Manipulator is busy"},
         503: {"description": "Manipulator error or hardware fault"},
-    }
+    },
 )
 async def complex_move_with_joints_dict(params: XarmMoveWithJointsDictParams):
     """Move the manipulator along a series of joint positions."""
     if manipulator_lock.locked():
-        raise HTTPException(status_code=status.HTTP_423_LOCKED, detail="Manipulator is busy")
+        raise HTTPException(
+            status_code=status.HTTP_423_LOCKED, detail="Manipulator is busy"
+        )
     try:
         robot_main = xarm_manager.get_instance(reset=params.reset_faults)
-        # Функция complex_move_with_joints должна принимать params.points и скорость
+        # complex_move_with_joints expects a sequence of points and velocity
         if params.blocking:
-            result = await guarded_manipulator_command(robot_main.complex_move_with_joints, params)
+            result = await guarded_manipulator_command(
+                robot_main.complex_move_with_joints, params
+            )
             return XarmCommandResponse(success=result)
         else:
+
             async def async_move():
-                return await guarded_manipulator_command(robot_main.complex_move_with_joints, params)
+                return await guarded_manipulator_command(
+                    robot_main.complex_move_with_joints, params
+                )
+
             task_id = task_manager.create_task(async_move())
             return XarmAsyncResponse(success=True, task_id=task_id)
     except Exception as e:
-        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=f"Failed to perform complex move: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=f"Failed to perform complex move: {str(e)}",
+        )
 
 
 @router.post(
@@ -303,24 +365,36 @@ async def complex_move_with_joints_dict(params: XarmMoveWithJointsDictParams):
         200: {"description": "Success (see returned field: success or task_id)"},
         423: {"description": "Manipulator is busy"},
         503: {"description": "Manipulator error or hardware fault"},
-    }
+    },
 )
 async def change_joints(params: XarmMoveWithJointsParams):
     """Move the manipulator to the given joint angles."""
     if manipulator_lock.locked():
-        raise HTTPException(status_code=status.HTTP_423_LOCKED,detail="Manipulator is busy")
+        raise HTTPException(
+            status_code=status.HTTP_423_LOCKED, detail="Manipulator is busy"
+        )
     try:
         robot_main = xarm_manager.get_instance(reset=params.reset_faults)
         if params.blocking:
-            result = await guarded_manipulator_command(robot_main.move_with_joints, params)
+            result = await guarded_manipulator_command(
+                robot_main.move_with_joints, params
+            )
             return XarmCommandResponse(success=result)
         else:
+
             async def async_move():
-                return await guarded_manipulator_command(robot_main.move_with_joints, params)
+                return await guarded_manipulator_command(
+                    robot_main.move_with_joints, params
+                )
+
             task_id = task_manager.create_task(async_move())
             return XarmAsyncResponse(success=True, task_id=task_id)
     except Exception as e:
-        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE,detail=f"Failed to change tool position: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=f"Failed to change tool position: {str(e)}",
+        )
+
 
 @router.post(
     "/manipulator/move/change_pose",
@@ -336,24 +410,34 @@ async def change_joints(params: XarmMoveWithJointsParams):
         200: {"description": "Success (see returned field: success or task_id)"},
         423: {"description": "Manipulator is busy"},
         503: {"description": "Manipulator error or hardware fault"},
-    }
+    },
 )
 async def change_pose(params: XarmMoveWithPoseParams):
     """Move the manipulator to a named pose."""
     if manipulator_lock.locked():
-        raise HTTPException(status_code=status.HTTP_423_LOCKED,detail="Manipulator is busy")
+        raise HTTPException(
+            status_code=status.HTTP_423_LOCKED, detail="Manipulator is busy"
+        )
     try:
         robot_main = xarm_manager.get_instance(reset=params.reset_faults)
         if params.blocking:
             result = await guarded_manipulator_command(robot_main.move_to_pose, params)
             return XarmCommandResponse(success=result)
         else:
+
             async def async_move():
-                return await guarded_manipulator_command(robot_main.move_to_pose, params)
+                return await guarded_manipulator_command(
+                    robot_main.move_to_pose, params
+                )
+
             task_id = task_manager.create_task(async_move())
             return XarmAsyncResponse(success=True, task_id=task_id)
     except Exception as e:
-        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE,detail=f"Failed to change tool position: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=f"Failed to change tool position: {str(e)}",
+        )
+
 
 @router.post(
     "/manipulator/move/change_tool_position",
@@ -369,24 +453,36 @@ async def change_pose(params: XarmMoveWithPoseParams):
         200: {"description": "Success (see returned field: success or task_id)"},
         423: {"description": "Manipulator is busy"},
         503: {"description": "Manipulator error or hardware fault"},
-    }
+    },
 )
 async def change_tool_position(params: XarmMoveWithToolParams):
     """Adjust tool position using provided offsets."""
     if manipulator_lock.locked():
-        raise HTTPException(status_code=status.HTTP_423_LOCKED,detail="Manipulator is busy")
+        raise HTTPException(
+            status_code=status.HTTP_423_LOCKED, detail="Manipulator is busy"
+        )
     try:
         robot_main = xarm_manager.get_instance(reset=params.reset_faults)
         if params.blocking:
-            result = await guarded_manipulator_command(robot_main.move_tool_position, params)
+            result = await guarded_manipulator_command(
+                robot_main.move_tool_position, params
+            )
             return XarmCommandResponse(success=result)
         else:
+
             async def async_move():
-                return await guarded_manipulator_command(robot_main.move_tool_position, params)
+                return await guarded_manipulator_command(
+                    robot_main.move_tool_position, params
+                )
+
             task_id = task_manager.create_task(async_move())
             return XarmAsyncResponse(success=True, task_id=task_id)
     except Exception as e:
-        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE,detail=f"Failed to change tool position: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=f"Failed to change tool position: {str(e)}",
+        )
+
 
 @router.post(
     "/manipulator/drop",
@@ -401,14 +497,13 @@ async def change_tool_position(params: XarmMoveWithToolParams):
         200: {"description": "Gripper successfully disabled"},
         423: {"description": "Manipulator is busy"},
         503: {"description": "Manipulator error or hardware fault"},
-    }
+    },
 )
 async def gripper_drop():
     """Release the object currently held by the gripper."""
     if manipulator_lock.locked():
         raise HTTPException(
-            status_code=status.HTTP_423_LOCKED,
-            detail="Manipulator is busy"
+            status_code=status.HTTP_423_LOCKED, detail="Manipulator is busy"
         )
     try:
         robot_main = xarm_manager.get_instance()
@@ -416,11 +511,10 @@ async def gripper_drop():
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail=f"Failed to disable gripper: {str(e)}"
+            detail=f"Failed to disable gripper: {str(e)}",
         )
-    return XarmCommandResponse(
-        success=result
-    )
+    return XarmCommandResponse(success=result)
+
 
 @router.post(
     "/manipulator/take",
@@ -435,14 +529,13 @@ async def gripper_drop():
         200: {"description": "Gripper successfully enabled"},
         423: {"description": "Manipulator is busy"},
         503: {"description": "Manipulator error or hardware fault"},
-    }
+    },
 )
 async def gripper_take():
     """Close the gripper to take an object."""
     if manipulator_lock.locked():
         raise HTTPException(
-            status_code=status.HTTP_423_LOCKED,
-            detail="Manipulator is busy"
+            status_code=status.HTTP_423_LOCKED, detail="Manipulator is busy"
         )
     try:
         robot_main = xarm_manager.get_instance()
@@ -450,11 +543,10 @@ async def gripper_take():
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail=f"Failed to enable gripper: {str(e)}"
+            detail=f"Failed to enable gripper: {str(e)}",
         )
-    return XarmCommandResponse(
-        success=result
-    )
+    return XarmCommandResponse(success=result)
+
 
 @router.get(
     "/manipulator/fault_reset",
@@ -470,14 +562,13 @@ async def gripper_take():
         200: {"description": "Manipulator faults successfully reset"},
         423: {"description": "Manipulator is busy"},
         503: {"description": "Manipulator error or hardware fault"},
-    }
+    },
 )
 async def reset_faults():
     """Reset error state on the manipulator controller."""
     if manipulator_lock.locked():
         raise HTTPException(
-            status_code=status.HTTP_423_LOCKED,
-            detail="Manipulator is busy"
+            status_code=status.HTTP_423_LOCKED, detail="Manipulator is busy"
         )
     try:
         xarm_manager._create_new_instance()
@@ -486,7 +577,7 @@ async def reset_faults():
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail=f"Failed to get manipulator status: {str(e)}"
+            detail=f"Failed to get manipulator status: {str(e)}",
         )
     return XarmStatusResponse(
         alive=result["alive"],
@@ -497,6 +588,7 @@ async def reset_faults():
         has_warn=result["has_warn"],
         error_code=result["error_code"],
     )
+
 
 @router.get(
     "/manipulator/status",
@@ -511,14 +603,13 @@ async def reset_faults():
         200: {"description": "Status retrieved"},
         423: {"description": "Manipulator is busy"},
         503: {"description": "Error retrieving manipulator status"},
-    }
+    },
 )
 async def get_manipulator_status():
     """Return current manipulator status information."""
     if manipulator_lock.locked():
         raise HTTPException(
-            status_code=status.HTTP_423_LOCKED,
-            detail="Manipulator is busy"
+            status_code=status.HTTP_423_LOCKED, detail="Manipulator is busy"
         )
     try:
         robot_main = xarm_manager.get_instance()
@@ -526,7 +617,7 @@ async def get_manipulator_status():
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail=f"Failed to get manipulator status: {str(e)}"
+            detail=f"Failed to get manipulator status: {str(e)}",
         )
     return XarmStatusResponse(
         alive=result["alive"],
@@ -538,9 +629,10 @@ async def get_manipulator_status():
         error_code=result["error_code"],
     )
 
+
 @router.get(
     "/manipulator/current_position",
-    response_model = Optional[dict],
+    response_model=Optional[dict],
     summary="Get manipulator current position",
     description="""
         Returns the current position of the manipulator.<br>
@@ -551,14 +643,13 @@ async def get_manipulator_status():
         200: {"description": "Current position retrieved"},
         423: {"description": "Manipulator is busy"},
         503: {"description": "Error retrieving manipulator current position"},
-    }
+    },
 )
 async def get_current_position():
     """Fetch the current named pose and joint positions."""
     if manipulator_lock.locked():
         raise HTTPException(
-            status_code=status.HTTP_423_LOCKED,
-            detail="Manipulator is busy"
+            status_code=status.HTTP_423_LOCKED, detail="Manipulator is busy"
         )
     try:
         robot_main = xarm_manager.get_instance()
@@ -566,12 +657,11 @@ async def get_current_position():
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail=f"Failed to get manipulator status: {str(e)}"
+            detail=f"Failed to get manipulator status: {str(e)}",
         )
-    return {
-        "pose_name":result[0],
-        "points":result[1]
-    }
+    return {"pose_name": result[0], "points": result[1]}
+
+
 @router.get(
     "/manipulator/joints_position",
     response_model=XarmJointsPositionResponse,
@@ -585,14 +675,13 @@ async def get_current_position():
         200: {"description": "Joints position retrieved"},
         423: {"description": "Manipulator is busy"},
         503: {"description": "Error retrieving manipulator joints position"},
-    }
+    },
 )
 async def get_manipulator_joints_position():
     """Return the current joint angles of the manipulator."""
     if manipulator_lock.locked():
         raise HTTPException(
-            status_code=status.HTTP_423_LOCKED,
-            detail="Manipulator is busy"
+            status_code=status.HTTP_423_LOCKED, detail="Manipulator is busy"
         )
     try:
         robot_main = xarm_manager.get_instance()
@@ -600,20 +689,18 @@ async def get_manipulator_joints_position():
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail=f"Failed to get manipulator status: {str(e)}"
+            detail=f"Failed to get manipulator status: {str(e)}",
         )
-    return XarmJointsPositionResponse(
-        joints=result[1]
-    )
+    return XarmJointsPositionResponse(joints=result[1])
+
 
 @router.get(
     "/health",
     summary="Check API health",
-    description="Healthcheck endpoint that returns a simple status."
+    description="Healthcheck endpoint that returns a simple status.",
 )
 async def healthcheck():
     """
     Healthcheck endpoint.
     """
     return {"status": "ok"}
-
