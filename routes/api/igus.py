@@ -146,6 +146,7 @@ class MotorStatusResponse(BaseModel):
         ..., description="Current position in encoder units", example=10000
     )
 
+
 async def guarded_motor_command(
     func: Callable, *args, **kwargs
 ) -> MotorCommandResponse:
