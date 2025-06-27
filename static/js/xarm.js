@@ -1,68 +1,128 @@
-class RobotApi {
-  constructor(baseUrl = '/api/v1/robot') {
-    this.baseUrl = baseUrl;
-  }
 
-  async moveToProduct(params) {
-    return this._post('/move/to_product', params);
-  }
-
-  async moveToBox1(params) {
-    return this._post('/move/to_box_1', params);
-  }
-
-  async moveToBox2(params) {
-    return this._post('/move/to_box_2', params);
-  }
-
-  async moveToTransportPosition(params) {
-    return this._post('/move/to_transport_position', params);
-  }
-
-  async getStatus() {
-    return this._request(`${this.baseUrl}/status`);
-  }
-
-  async _post(path, body) {
-    return this._request(`${this.baseUrl}${path}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body)
-    });
-  }
-
-  async _request(url, options = {}) {
-    try {
-      const response = await fetch(url, options);
-      const data = await response.json();
-      if (!response.ok) {
-        const msg = this._parseMessage(data);
-        const details = data.detail && data.detail.states ? data.detail.states : null;
-        showError(msg, details);
-        throw new Error(msg);
+window.robotServer = {
+    module: null, // Переменная для хранения экземпляра класса ArduinoApi
+    
+    // Инициализация модуля
+    init: function() {
+      if (!this.module) {
+        this.module = new robotServerApi(); // Создаем экземпляр только один раз
       }
-      return data;
-    } catch (err) {
-      console.error('Robot API error:', err);
-      return { error: err.message };
+    },
+    async xarm_command(command) {
+      return await this.module.xarmSendCommand(command);
+    },
+    async robot_script(data) {
+      return await this.module.sendCommand(data);
+    },
+    // Пример метода для отправки команды 'success'
+    async getPosition(name) {
+      return await this.module.sendCommand('/xarm_positions',name);
+    },
+  };
+
+  class robotServerApi {
+    constructor(baseURL = 'http://' + location.hostname + ':8000') {
+      this.baseURL = baseURL;
+    }
+  
+    // Метод для отправки команды на сервер
+    async sendCommand(data) {
+      const url = `${this.baseURL}/run_script`;
+      const body = JSON.stringify(data);
+  
+      try {
+        const response = await fetch(url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: body,
+        });
+  
+        const data = await response.json();
+
+        if (!response.ok) {
+          let msg = 'Unknown error';
+          let details = null;
+
+          if (typeof data.detail === 'string') {
+            msg = data.detail;
+          } else if (data.detail && typeof data.detail === 'object') {
+            msg = data.detail.message || msg;
+            details = data.detail.states;
+          } else if (data.error) {
+            msg = data.error;
+          }
+//   // В sendCommand и xarmSendCommand
+// console.log('Response:', data);
+// console.log('Details:', data.detail && data.detail.states);
+
+// // Перед showError
+// showError(msg, details);
+          showError(msg, details);
+
+          throw new Error(msg);
+        }
+
+        // Если команда успешно отправлена
+        return {
+          status: data.status,
+          result: data.result,
+        };
+      } catch (error) {
+        console.error('Ошибка при отправке команды:', error);
+//   // В sendCommand и xarmSendCommand
+// console.log('Response:', data);
+// console.log('Details:', data.detail && data.detail.states);
+
+// // Перед showError
+// showError(msg, details);
+        // showError(error.message);
+
+        return { error: error.message };
+      }
+    }
+    // Метод для отправки команды на сервер
+    async xarmSendCommand(command) {
+      const url = `${this.baseURL}/api/xarm/command`;
+      const body = JSON.stringify({ command });
+  
+      try {
+        const response = await fetch(url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: body,
+        });
+  
+        const data = await response.json();
+
+        if (!response.ok) {
+          let msg = 'Unknown error';
+
+          if (typeof data.detail === 'string') {
+            msg = data.detail;
+          } else if (data.detail && typeof data.detail === 'object') {
+            msg = data.detail.message || msg;
+          }
+
+          throw new Error(msg);
+        }
+  
+        // Если команда успешно отправлена
+        return {
+          status: data.result
+        };
+      } catch (error) {
+        console.error('Ошибка при отправке команды:', error);
+        // showError(error.message);
+        return { error: error.message };
+      }
     }
   }
-
-  _parseMessage(data) {
-    let msg = 'Unknown error';
-    if (typeof data.detail === 'string') {
-      msg = data.detail;
-    } else if (data.detail && typeof data.detail === 'object') {
-      msg = data.detail.message || msg;
-    } else if (data.error) {
-      msg = data.error;
-    }
-    return msg;
-  }
-}
-
-window.robot = new RobotApi();
-
+  // Инициализируем модуль при загрузке
+window.robotServer.init();
 function formatDeviceState(devices) {
   if (!devices || typeof devices !== 'object') return '';
   let html = '';
@@ -81,6 +141,7 @@ function formatDetails(details) {
   if (!details) return '';
   if (typeof details === 'string') return details;
 
+  // Если details — это ошибка с traceback
   if (typeof details === 'object' && details.traceback) {
     let html = '';
     if (details.type) html += `<span style="color:#8b5cf6"><b>${details.type}</b></span>: `;
@@ -91,6 +152,7 @@ function formatDetails(details) {
     return html;
   }
 
+  // Если details — просто объект (например, стейт устройства)
   if (typeof details === 'object' && !Array.isArray(details)) {
     let html = '<ul style="padding-left:16px;margin:0;">';
     for (const [key, val] of Object.entries(details)) {
@@ -104,10 +166,14 @@ function formatDetails(details) {
     return html;
   }
 
+  // fallback
   return `<pre>${JSON.stringify(details, null, 2)}</pre>`;
 }
 
+
 function showError(message, details = null) {
+
+
   let modal = document.getElementById('error-modal');
   if (!modal) {
     modal = document.createElement('div');
@@ -137,15 +203,18 @@ function showError(message, details = null) {
 
     const text = document.createElement('div');
     text.id = 'error-modal-text';
+    // text.style.marginBottom = '18px';
     text.style.fontSize = '20px';
     text.style.color = '#22223b';
     box.appendChild(text);
 
+    // Кнопка "Показать детали"
     const detailsToggle = document.createElement('button');
     detailsToggle.textContent = 'Show details';
     detailsToggle.style.padding = '20px';
     detailsToggle.style.fontSize = '15px';
     detailsToggle.style.display = 'none';
+    // detailsToggle.style.marginBottom = '10px';
     detailsToggle.style.background = 'none';
     detailsToggle.style.border = 'none';
     detailsToggle.style.color = '#2563eb';
@@ -155,11 +224,13 @@ function showError(message, details = null) {
 
     const detailsEl = document.createElement('pre');
     detailsEl.id = 'error-modal-details';
+    // detailsEl.style.marginBottom = '18px';
     detailsEl.style.textAlign = 'left';
     detailsEl.style.display = 'none';
     detailsEl.style.width = '500px';
     detailsEl.style.whiteSpace = 'pre-wrap';
     detailsEl.style.background = '#f7f7fa';
+    // detailsEl.style.padding = '10px';
     detailsEl.style.borderRadius = '8px';
     detailsEl.style.fontSize = '15px';
     detailsEl.style.color = '#3a3a3a';
@@ -195,20 +266,22 @@ function showError(message, details = null) {
 
   const detailsToggle = modal.querySelector('button:nth-child(2)');
   const detailsEl = modal.querySelector('#error-modal-details');
-  if (detailsEl) {
-    if (details) {
-      detailsToggle.style.display = 'block';
-      let expanded = false;
-      detailsToggle.onclick = () => {
-        expanded = !expanded;
-        detailsEl.style.display = expanded ? 'block' : 'none';
-        detailsToggle.textContent = expanded ? 'hide' : 'Show details';
-      };
-      detailsEl.innerHTML = formatDeviceState(details);
-    } else {
-      detailsToggle.style.display = 'none';
-      detailsEl.style.display = 'none';
-      detailsEl.innerHTML = '';
-    }
+ if (detailsEl) {
+  if (details) {
+    detailsToggle.style.display = 'block';
+    let expanded = false;
+    detailsToggle.onclick = () => {
+      expanded = !expanded;
+      detailsEl.style.display = expanded ? 'block' : 'none';
+      detailsToggle.textContent = expanded ? 'hide' : 'Show details';
+    };
+    detailsEl.innerHTML = formatDeviceState(details); // вот тут!
+  } else {
+    detailsToggle.style.display = 'none';
+    detailsEl.style.display = 'none';
+    detailsEl.innerHTML = '';
   }
 }
+
+}
+
