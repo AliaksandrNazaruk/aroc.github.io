@@ -1,3 +1,5 @@
+"""Utility routes for serving files, trajectory management and Arduino commands."""
+
 from fastapi.responses import FileResponse, JSONResponse
 from typing import Dict, Any
 import os
@@ -28,6 +30,7 @@ def get_control_page():
 
 @router.get("/api/trajectory")
 def api_get_trajectory():
+    """Return the currently stored trajectory configuration."""
     config = get_trajectory()
     if config is None:
         raise HTTPException(status_code=404, detail="Trajectory configuration not found.")
@@ -35,6 +38,7 @@ def api_get_trajectory():
 
 @router.post("/api/trajectory", status_code=status.HTTP_201_CREATED)
 def api_save_trajectory(config: dict):
+    """Persist a new trajectory configuration."""
     try:
         save_trajectory(config)
         return {"status": "ok", "message": "Trajectory configuration saved."}
