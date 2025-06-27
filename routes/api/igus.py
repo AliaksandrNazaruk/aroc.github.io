@@ -82,13 +82,13 @@ class TaskStatusResponse(BaseModel):
         None, description="Result returned when the task completes"
     )
 
-
 @router.get(
     "/motor/task_status/{task_id}",
     response_model=TaskStatusResponse,
     summary="Get async task status",
     description="Return progress information for a previously started motor command.",
 )
+
 async def get_motor_task_status(task_id: str):
     """Return status information for a previously started async motor command."""
     status = task_manager.get_status(task_id)
@@ -146,10 +146,10 @@ class MotorStatusResponse(BaseModel):
         ..., description="Current position in encoder units", example=10000
     )
 
-
 async def guarded_motor_command(
     func: Callable, *args, **kwargs
 ) -> MotorCommandResponse:
+
     """Execute a motor command ensuring exclusive access to the device."""
     if motor_lock.locked():
         raise HTTPException(status_code=status.HTTP_423_LOCKED, detail="Motor is busy")

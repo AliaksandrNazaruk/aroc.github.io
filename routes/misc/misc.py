@@ -1,6 +1,7 @@
 """Utility routes for serving files, trajectory management and Arduino commands."""
 
 from fastapi.responses import FileResponse, JSONResponse
+
 from typing import Dict, Any
 import os
 from core.state import job_done  # indicates if long running job is finished
@@ -59,11 +60,13 @@ def api_get_trajectory():
     summary="Save trajectory configuration",
     description="Persist a new trajectory configuration on the server.",
 )
+
 def api_save_trajectory(config: dict):
     """Persist a new trajectory configuration."""
     try:
         save_trajectory(config)
         return {"status": "ok", "message": "Trajectory configuration saved."}
+
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
@@ -114,3 +117,4 @@ def send_command(data: Dict[str, Any]):
 def echo(data: Dict[str, Any]):
     """Echo back received data"""
     return {"received": data}
+
